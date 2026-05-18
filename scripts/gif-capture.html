@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>gif capture</title>
+  <link rel="stylesheet" href="../assets/css/main.css">
+  <style>
+    html, body { margin: 0; padding: 0; background: transparent; }
+    body { width: 800px; height: 180px; overflow: hidden; }
+    #footer-banner { width: 800px; height: 180px; border-top: 0 !important; margin: 0; }
+    #footer-banner svg { display: block; width: 800px; height: 180px; }
+    #footer-hint { display: none !important; }
+  </style>
+</head>
+<body>
+  <div id="footer-banner"></div>
+  <script src="../assets/js/main.js"></script>
+  <script>
+    (function () {
+      const params = new URLSearchParams(location.search);
+      const t = parseFloat(params.get('t') || '0');
+      const theme = params.get('theme') || 'light';
+      const cycleSeconds = 12;
+
+      if (theme === 'dark') document.documentElement.dataset.theme = 'dark';
+
+      const delay = -(t * cycleSeconds);
+      document.querySelectorAll('.train-anim-a').forEach(el => {
+        el.style.animationDelay = delay + 's';
+        el.style.animationPlayState = 'paused';
+      });
+
+      const hint = document.getElementById('footer-hint');
+      if (hint) hint.style.display = 'none';
+    })();
+  </script>
+</body>
+</html>

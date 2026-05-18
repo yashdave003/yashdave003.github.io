@@ -1,0 +1,60 @@
+# robots.txt for yashdave003.github.io
+#
+# Posture: block known AI training crawlers; allow standard search engines
+# and on-demand fetches by AI assistants (so live "who is Yash Dave?" queries
+# still resolve with correct info, but pages aren't baked into model weights).
+#
+# This is advisory — only well-behaved crawlers honor robots.txt.
+
+# ─── AI training crawlers ────────────────────────────────────────────────
+
+User-agent: GPTBot
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: ClaudeBot
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: PerplexityBot
+Disallow: /
+
+User-agent: Applebot-Extended
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+User-agent: Meta-ExternalAgent
+Disallow: /
+
+User-agent: FacebookBot
+Disallow: /
+
+User-agent: cohere-ai
+Disallow: /
+
+User-agent: Diffbot
+Disallow: /
+
+User-agent: Amazonbot
+Disallow: /
+
+User-agent: Omgilibot
+Disallow: /
+
+User-agent: ImagesiftBot
+Disallow: /
+
+# ─── Everything else (Googlebot, Bingbot, Internet Archive, on-demand
+#     AI fetchers like ChatGPT-User / Claude-Web / Perplexity-User) ─────────
+
+User-agent: *
+Allow: /

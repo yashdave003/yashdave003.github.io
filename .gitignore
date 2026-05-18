@@ -1,0 +1,15 @@
+# Dev docs — kept local, never pushed
+PROJECT.md
+SESSION_HANDOFF.md
+
+# Sandbox: scratch space for design references, prototypes, etc.
+sandbox/
+
+# Claude Code local config
+.claude/
+
+# Windows
+Thumbs.db
+
+# markitdown PDF caches (kept locally for fast re-reads)
+*.pdf.md
