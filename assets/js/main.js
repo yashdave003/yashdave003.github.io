@@ -923,7 +923,7 @@
     </g>
   
   </svg>
-  <div style="position:absolute;bottom:10px;right:14px;font-size:10px;font-family:Georgia,serif;color:rgba(42,26,14,0.3);pointer-events:none;" id="footer-hint">click to pause</div>`;
+  <div style="position:absolute;bottom:10px;right:14px;font-size:10px;font-family:Georgia,serif;color:rgba(42,26,14,0.3);pointer-events:none;" id="footer-hint">click the sky</div>`;
 
   // 1. Inject footer banner
   const footerBanner = document.getElementById('footer-banner');
@@ -931,57 +931,156 @@
     footerBanner.innerHTML = FOOTER_HTML;
     footerBanner.setAttribute('role', 'button');
     footerBanner.setAttribute('tabindex', '0');
-    footerBanner.setAttribute('aria-label', 'Pause or play the footer animation');
-    footerBanner.setAttribute('aria-pressed', 'false');
+    footerBanner.setAttribute('aria-label', 'Change the banner time of day: play, night, day');
+    // (interaction is wired in the sky-cycle block below)
+  }
 
-    // 2. Pause/play on click or keyboard (Enter / Space)
-    const footerHint = document.getElementById('footer-hint');
-    let paused = false;
-    const toggle = () => {
-      paused = !paused;
-      footerBanner.classList.toggle('paused', paused);
-      footerBanner.setAttribute('aria-pressed', paused ? 'true' : 'false');
-      if (footerHint) footerHint.textContent = paused ? 'click to play' : 'click to pause';
+  // 2b. Sky cycle + interactivity + theme.
+  //     The banner sky runs a continuous day↔night cycle: the sun and moon trace one looping arc
+  //     (sun by day, moon by night; rising left, setting right), the glow blooming at the horizon
+  //     where each disc rises/sets. Clicking the sky cycles three modes on one Web Animations clock:
+  //     ▶ play (free cycle) → ☽ night (pinned midnight, page → dark) → ☀ day (pinned noon, page →
+  //     light) → play. The top-right ☀/☽ button is an independent page light/dark toggle. The train
+  //     animates independently. prefers-reduced-motion freezes a static day/night frame.
+  (function setupSky() {
+    const html = document.documentElement;
+    const themeToggle = document.getElementById('themeToggle');
+    const setTheme = dark => {
+      html.dataset.theme = dark ? 'dark' : '';
+      if (themeToggle) themeToggle.textContent = dark ? '☽' : '☀';
+      localStorage.setItem('theme', dark ? 'dark' : '');
     };
-    footerBanner.addEventListener('click', toggle);
-    footerBanner.addEventListener('keydown', e => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        toggle();
-      }
-    });
-  }
+    if (localStorage.getItem('theme')) setTheme(localStorage.getItem('theme') === 'dark');
+    if (themeToggle) themeToggle.addEventListener('click', () => setTheme(html.dataset.theme !== 'dark'));
 
-  // 3. Theme toggle — top-right button + clickable sun/moon in the footer SVG
-  const themeToggle = document.getElementById('themeToggle');
-  const html = document.documentElement;
-  const savedTheme = localStorage.getItem('theme');
-  if (savedTheme) {
-    html.dataset.theme = savedTheme;
-    if (themeToggle) themeToggle.textContent = savedTheme === 'dark' ? '☽' : '☀';
-  }
-  const toggleTheme = () => {
-    const isDark = html.dataset.theme === 'dark';
-    html.dataset.theme = isDark ? '' : 'dark';
-    if (themeToggle) themeToggle.textContent = isDark ? '☀' : '☽';
-    localStorage.setItem('theme', isDark ? '' : 'dark');
-  };
-  if (themeToggle) themeToggle.addEventListener('click', toggleTheme);
+    const banner = document.getElementById('footer-banner');
+    const svg = banner && banner.querySelector('svg');
+    if (!svg) return;
 
-  const sunMoon = footerBanner && footerBanner.querySelector('.sun-moon');
-  if (sunMoon) {
-    sunMoon.addEventListener('click', e => {
-      e.stopPropagation();
-      toggleTheme();
-    });
-    sunMoon.addEventListener('keydown', e => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        e.stopPropagation();
-        toggleTheme();
+    const CYCLE = 60, D = CYCLE + 's';
+
+    // Sky → fixed 5-stop set the states share (offsets 0/27/50/73/100); colours driven below.
+    const sky = svg.querySelector('#sky-f');
+    if (sky) sky.innerHTML = '<stop offset="0%"/><stop offset="27%"/><stop offset="50%"/><stop offset="73%"/><stop offset="100%"/>';
+
+    // Defs: soft radial glows for the sun + moon.
+    const defs = svg.querySelector('defs');
+    if (defs) defs.insertAdjacentHTML('beforeend',
+      '<radialGradient id="ap-sunglow"><stop offset="0%" stop-color="#ffd089" stop-opacity="0.9"/><stop offset="45%" stop-color="#ff9d52" stop-opacity="0.4"/><stop offset="100%" stop-color="#ff7a40" stop-opacity="0"/></radialGradient>' +
+      '<radialGradient id="ap-moonglow"><stop offset="0%" stop-color="#b8c4e0" stop-opacity="0.5"/><stop offset="100%" stop-color="#b8c4e0" stop-opacity="0"/></radialGradient>');
+
+    // Orbiting luminaries, inserted right after the sky so landmarks occlude them when low.
+    const R = 11, Rt = 12;
+    const crescent = 'M 0,' + (-R) + ' A ' + R + ',' + R + ' 0 0,0 0,' + R + ' A ' + Rt + ',' + Rt + ' 0 0,1 0,' + (-R) + ' Z';
+    const skyRect = svg.querySelector('rect[fill="url(#sky-f)"]');
+    if (skyRect) skyRect.insertAdjacentHTML('afterend',
+      '<g id="ap-sun" style="mix-blend-mode:screen"><ellipse id="ap-sun-glow" cx="0" cy="0" rx="62" ry="40" fill="url(#ap-sunglow)" opacity="0"/></g>' +
+      '<g id="ap-sun-disc"><circle cx="0" cy="0" r="' + R + '" fill="#fff1cf"/></g>' +
+      '<g id="ap-moon"><ellipse cx="0" cy="0" rx="40" ry="28" fill="url(#ap-moonglow)" opacity="0"/><path d="' + crescent + '" fill="#f2f4f8"/></g>');
+
+    // Ellipse arc: apex at p=0 (noon); sun rises ~p79 (left), sets ~p21 (right); moon = sun + 50%.
+    const CX = 400, CY = 188, RX = 372, RY = 156;
+    const posAt = p => { const th = 2 * Math.PI * (p / 100); return [CX + RX * Math.sin(th), CY - RY * Math.cos(th)]; };
+
+    // Colour states (sky / ground / lights), keyed to sun altitude via the timeline below.
+    const STATES = {
+      day:      { sky:['#c5dff0','#cfe6f4','#dceef8','#e6e2dd','#e8d9c2'], water:['#a8d4ec','#88bcd8'], grass:['#8aaa7a','#5a7a4a'], sand:['#e2d0b0','#cdb890'], bgh:['#b8c8d8','#a8b8c8'], midhill:'#a8a89a', gbeam:'#9a8a70', gpillar:'#8a7a60', dayhl:1, stars:0, hill:0, dubai:0, baylight:'#3d3020', crown:'#4a5868', spire:'#2a1a0e', dbody:'#48b4e4', droof:'#e8f0f4', fbody:'#1f3825', cbody:'#e8e8ec' },
+      golden:   { sky:['#1e2f5e','#5a5a8e','#b87a86','#ee9568','#ffc873'], water:['#eca673','#6d5a78'], grass:['#6e5e3e','#2c2414'], sand:['#cf9a60','#97642f'], bgh:['#7e6e8e','#5f5070'], midhill:'#3d3250', gbeam:'#6a563c', gpillar:'#5e4c34', dayhl:0, stars:0, hill:0, dubai:0, baylight:'#6a5a40', crown:'#9a7a3a', spire:'#2a1a0e', dbody:'#3f6e86', droof:'#c7b596', fbody:'#1c3020', cbody:'#d6cdc2' },
+      bluehour: { sky:['#0e1a3a','#1f2b52','#3a3a63','#7a4a5a','#cf7038'], water:['#5a4a5e','#0e1730'], grass:['#34384a','#161a26'], sand:['#4a4250','#2a2434'], bgh:['#34324e','#242238'], midhill:'#1f1d30', gbeam:'#6a563c', gpillar:'#5e4c34', dayhl:0, stars:0.5, hill:0.6, dubai:0.7, baylight:'#9a7a50', crown:'#caa040', spire:'#8a8a90', dbody:'#2a4456', droof:'#6a6c78', fbody:'#142418', cbody:'#6a6870' },
+      night:    { sky:['#08061a','#0d0920','#120c2a','#180e22','#1e100a'], water:['#0a1428','#050a18'], grass:['#1a2a14','#0e1a0a'], sand:['#2a1e0e','#1e1408'], bgh:['#1a2030','#141a28'], midhill:'#1c1726', gbeam:'#3a2f1e', gpillar:'#332817', dayhl:0, stars:1, hill:1, dubai:1, baylight:'#f0e6c0', crown:'#f5d850', spire:'#d8dcd8', dbody:'#264458', droof:'#5a5c66', fbody:'#142418', cbody:'#2e3036' },
+      dawn:     { sky:['#2a2f55','#4a4a78','#9a6a86','#e8a886','#ffd9a8'], water:['#d6a690','#5a5a72'], grass:['#62584a','#2a2418'], sand:['#b89a86','#806452'], bgh:['#8a7a92','#6a5e76'], midhill:'#46405a', gbeam:'#6a563c', gpillar:'#5e4c34', dayhl:0, stars:0.28, hill:0, dubai:0, baylight:'#5a5266', crown:'#5a5868', spire:'#3a2a1e', dbody:'#5a7e92', droof:'#cabfc0', fbody:'#243a2c', cbody:'#dcd4cc' }
+    };
+    const TL = [[0,'day'],[10,'day'],[16,'golden'],[23,'bluehour'],[34,'night'],[66,'night'],[78,'dawn'],[90,'day'],[100,'day']];
+
+    const T = [];
+    for (let i = 0; i < 5; i++) T.push({ sel: '#sky-f stop:nth-child(' + (i + 1) + ')', prop: 'stop-color', key: 'sky', idx: i });
+    for (let i = 0; i < 2; i++) T.push({ sel: '#water-f stop:nth-child(' + (i + 1) + ')', prop: 'stop-color', key: 'water', idx: i });
+    T.push({ sel: '.grass-top', prop: 'stop-color', key: 'grass', idx: 0 }, { sel: '.grass-bot', prop: 'stop-color', key: 'grass', idx: 1 });
+    T.push({ sel: '.sand-top', prop: 'stop-color', key: 'sand', idx: 0 }, { sel: '.sand-bot', prop: 'stop-color', key: 'sand', idx: 1 });
+    T.push({ sel: '.bg-hills-top', prop: 'stop-color', key: 'bgh', idx: 0 }, { sel: '.bg-hills-bot', prop: 'stop-color', key: 'bgh', idx: 1 });
+    [['.mid-range-hills', 'fill', 'midhill'], ['.guideway-beam', 'fill', 'gbeam'], ['.guideway-pillars', 'fill', 'gpillar'],
+     ['.day-highlight', 'opacity', 'dayhl'], ['.night-stars', 'opacity', 'stars'], ['.hill-lights', 'opacity', 'hill'], ['.dubai-lights', 'opacity', 'dubai'],
+     ['.bay-light', 'stroke', 'baylight'], ['.sf-crown-tip', 'fill', 'crown'], ['.burj-spire', 'fill', 'spire'],
+     ['.dubai-body', 'fill', 'dbody'], ['.dubai-roof', 'fill', 'droof'], ['.fbus-body', 'fill', 'fbody'], ['.caltrain-body', 'fill', 'cbody']
+    ].forEach(([sel, prop, key]) => T.push({ sel, prop, key, idx: null }));
+    const valOf = (s, t) => { const v = STATES[s][t.key]; return t.idx == null ? v : v[t.idx]; };
+
+    // Force the day-/night-only layers to render so the cycle's opacity (not data-theme) drives them;
+    // hide the legacy corner sun/moon (replaced by the orbiting luminary).
+    const forceShow = '#footer-banner .night-stars,#footer-banner .hill-lights,#footer-banner .dubai-lights,#footer-banner .day-highlight{display:inline !important;}' +
+      '#footer-banner .sun-moon{display:none !important;}';
+
+    // ── keyframes: colours + orbit motion + glow/disc ──
+    // 0.5% sampling (was 4%) → a smooth, even path with no polygon jerk. Timing stays linear in the
+    // ellipse angle, so the sun keeps lingering at the horizon — long, slow sunrises/sunsets.
+    const fmt = v => Math.round(v * 10) / 10;
+    let css = forceShow, n = 0;
+    const bySel = {}; T.forEach(t => (bySel[t.sel] = bySel[t.sel] || []).push(t));
+    for (const sel in bySel) {
+      const names = [];
+      for (const t of bySel[sel]) {
+        const nm = 'ap' + (n++); let body = '';
+        for (const [pct, s] of TL) body += pct + '%{' + t.prop + ':' + valOf(s, t) + ';}';
+        css += '@keyframes ' + nm + '{' + body + '}'; names.push(nm + ' ' + D + ' linear infinite');
       }
-    });
-  }
+      css += sel + '{animation:' + names.join(',') + ';}';
+    }
+    let sunKf = '', moonKf = '';
+    for (let i = 0; i <= 200; i++) {
+      const p = i / 2, s = posAt(p), m = posAt(p + 50);
+      sunKf += p + '%{transform:translate(' + fmt(s[0]) + 'px,' + fmt(s[1]) + 'px);}';
+      moonKf += p + '%{transform:translate(' + fmt(m[0]) + 'px,' + fmt(m[1]) + 'px);}';
+    }
+    css += '@keyframes ap-sun-move{' + sunKf + '}#ap-sun-disc,#ap-sun{animation:ap-sun-move ' + D + ' linear infinite;}';
+    css += '@keyframes ap-moon-move{' + moonKf + '}#ap-moon{animation:ap-moon-move ' + D + ' linear infinite;}';
+    css += '@keyframes ap-sunglow-op{0%{opacity:0.06}10%{opacity:0.25}16%{opacity:0.75}21%{opacity:0.95}25%{opacity:0.5}30%{opacity:0}70%{opacity:0}79%{opacity:0.9}85%{opacity:0.5}92%{opacity:0.2}100%{opacity:0.06}}#ap-sun-glow{animation:ap-sunglow-op ' + D + ' linear infinite;}';
+    css += '@keyframes ap-disc-fill{0%{fill:#fff3d0}14%{fill:#ffc070}20%{fill:#ff9048}26%{fill:#ff7838}30%{fill:#ff7838}74%{fill:#ff7838}80%{fill:#ff9048}88%{fill:#ffc878}100%{fill:#fff3d0}}#ap-sun-disc circle{animation:ap-disc-fill ' + D + ' linear infinite;}';
+    css += '@keyframes ap-moonglow-op{0%{opacity:0}30%{opacity:0}40%{opacity:0.25}50%{opacity:0.35}60%{opacity:0.25}70%{opacity:0}100%{opacity:0}}#ap-moon ellipse{animation:ap-moonglow-op ' + D + ' linear infinite;}';
+
+    const styleEl = document.createElement('style'); styleEl.id = 'sky-cycle-style'; styleEl.textContent = css; document.head.appendChild(styleEl);
+
+    // ── interaction: one Web Animations clock, three modes, reduced-motion static pin ──
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const durMs = () => CYCLE * 1000;
+    const skyAnims = () => document.getAnimations().filter(a => a.animationName && a.animationName.indexOf('ap') === 0);
+    const pinStatic = () => { const dark = html.dataset.theme === 'dark'; skyAnims().forEach(a => { a.pause(); try { a.currentTime = (dark ? 0.5 : 0) * durMs(); } catch (_) {} }); };
+
+    let mode = 'play', token = 0;
+    const easeTo = targetP => {                       // forward-only, constant rate; pauses sky, holds at target
+      const my = ++token, A = skyAnims(); if (!A.length) return;
+      A.forEach(a => a.pause());
+      const d = durMs(), cur = ((((A[0].currentTime || 0) % d) + d) % d) / d * 100;
+      let dist = (((targetP - cur) % 100) + 100) % 100; if (dist < 2) dist += 100;
+      const Tm = dist * 80, t0 = performance.now(); // 80ms per cycle-unit → a 50-unit day↔night toggle ≈ 4s
+      const step = now => {
+        if (my !== token) return;
+        const k = Math.min(1, (now - t0) / Tm), ms = ((cur + dist * k) % 100) / 100 * d;
+        A.forEach(a => { try { a.currentTime = ms; } catch (_) {} });
+        if (k < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    };
+    const playFree = () => { ++token; document.getAnimations().forEach(a => a.play()); };
+    const advance = () => {
+      if (reduce.matches) { setTheme(html.dataset.theme !== 'dark'); return; } // static toggle (re-pin via observer)
+      mode = mode === 'play' ? 'night' : mode === 'night' ? 'day' : 'play';
+      if (mode === 'play') playFree();
+      else if (mode === 'night') { easeTo(50); setTheme(true); }
+      else { easeTo(0); setTheme(false); }
+    };
+
+    // Click the sky (upper band) → advance; lower band left for future train interaction. Keyboard too.
+    svg.insertAdjacentHTML('beforeend', '<rect id="ap-skyhit" x="0" y="0" width="800" height="110" fill="none" pointer-events="all" style="cursor:pointer"/>');
+    svg.querySelector('#ap-skyhit').addEventListener('click', advance);
+    if (banner) banner.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); advance(); } });
+
+    // Start free-playing (or static under reduced motion). Defer a frame so the animations exist.
+    requestAnimationFrame(() => { if (reduce.matches) pinStatic(); });
+    reduce.addEventListener('change', () => { if (reduce.matches) pinStatic(); else { mode = 'play'; document.getAnimations().forEach(a => a.play()); } });
+    new MutationObserver(() => { if (reduce.matches) pinStatic(); }).observe(html, { attributes: true, attributeFilter: ['data-theme'] });
+  })();
+
+  // 3. (Theme toggle is handled inside the sky-cycle block above.)
 
   // 4. Active nav highlighting based on current URL
   const path = window.location.pathname;
