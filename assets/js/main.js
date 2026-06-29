@@ -923,7 +923,7 @@
     </g>
   
   </svg>
-  <div style="position:absolute;bottom:10px;right:14px;font-size:10px;font-family:Georgia,serif;color:rgba(42,26,14,0.3);pointer-events:none;" id="footer-hint">click the sky</div>`;
+  <div style="position:absolute;bottom:10px;right:14px;font-size:10px;font-family:Georgia,serif;color:rgba(42,26,14,0.3);pointer-events:none;" id="footer-hint"></div>`;
 
   // 1. Inject footer banner
   const footerBanner = document.getElementById('footer-banner');
@@ -951,7 +951,8 @@
       localStorage.setItem('theme', dark ? 'dark' : '');
     };
     if (localStorage.getItem('theme')) setTheme(localStorage.getItem('theme') === 'dark');
-    if (themeToggle) themeToggle.addEventListener('click', () => setTheme(html.dataset.theme !== 'dark'));
+    // (top-right button's click handler is wired below, once the sky mode machine exists, so it can
+    //  pin the sky to the matching day/night pole — keeping button + sky in sync.)
 
     const banner = document.getElementById('footer-banner');
     const svg = banner && banner.querySelector('svg');
@@ -967,16 +968,38 @@
     const defs = svg.querySelector('defs');
     if (defs) defs.insertAdjacentHTML('beforeend',
       '<radialGradient id="ap-sunglow"><stop offset="0%" stop-color="#ffd089" stop-opacity="0.9"/><stop offset="45%" stop-color="#ff9d52" stop-opacity="0.4"/><stop offset="100%" stop-color="#ff7a40" stop-opacity="0"/></radialGradient>' +
-      '<radialGradient id="ap-moonglow"><stop offset="0%" stop-color="#b8c4e0" stop-opacity="0.5"/><stop offset="100%" stop-color="#b8c4e0" stop-opacity="0"/></radialGradient>');
+      // always-on soft radiance around the sun disc (visible even at midday, like the old corner sun)
+      '<radialGradient id="ap-sunhalo"><stop offset="0%" stop-color="#fff0c8" stop-opacity="0.55"/><stop offset="55%" stop-color="#ffe6a8" stop-opacity="0.2"/><stop offset="100%" stop-color="#ffe6a8" stop-opacity="0"/></radialGradient>' +
+      '<radialGradient id="ap-moonglow"><stop offset="0%" stop-color="#b8c4e0" stop-opacity="0.5"/><stop offset="100%" stop-color="#b8c4e0" stop-opacity="0"/></radialGradient>' +
+      // jet contrail — bright stop colour shifts with time of day
+      '<linearGradient id="contrail" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#fff" stop-opacity="0"/><stop id="contrail-b" offset="100%" stop-color="#fff" stop-opacity="0.6"/></linearGradient>');
 
     // Orbiting luminaries, inserted right after the sky so landmarks occlude them when low.
-    const R = 11, Rt = 12;
-    const crescent = 'M 0,' + (-R) + ' A ' + R + ',' + R + ' 0 0,0 0,' + R + ' A ' + Rt + ',' + Rt + ' 0 0,1 0,' + (-R) + ' Z';
+    const RSUN = 13, RMOON = 13, RtMOON = 16; // bigger discs; larger RtMOON = thicker-bellied crescent
+    const crescent = 'M 0,' + (-RMOON) + ' A ' + RMOON + ',' + RMOON + ' 0 0,0 0,' + RMOON + ' A ' + RtMOON + ',' + RtMOON + ' 0 0,1 0,' + (-RMOON) + ' Z';
     const skyRect = svg.querySelector('rect[fill="url(#sky-f)"]');
     if (skyRect) skyRect.insertAdjacentHTML('afterend',
-      '<g id="ap-sun" style="mix-blend-mode:screen"><ellipse id="ap-sun-glow" cx="0" cy="0" rx="62" ry="40" fill="url(#ap-sunglow)" opacity="0"/></g>' +
-      '<g id="ap-sun-disc"><circle cx="0" cy="0" r="' + R + '" fill="#fff1cf"/></g>' +
-      '<g id="ap-moon"><ellipse cx="0" cy="0" rx="40" ry="28" fill="url(#ap-moonglow)" opacity="0"/><path d="' + crescent + '" fill="#f2f4f8"/></g>');
+      // sun: big horizon-bloom glow (animated) + always-on soft halo (midday radiance) + disc
+      '<g id="ap-sun" style="mix-blend-mode:screen"><ellipse id="ap-sun-glow" cx="0" cy="0" rx="62" ry="40" fill="url(#ap-sunglow)" opacity="0"/><circle cx="0" cy="0" r="26" fill="url(#ap-sunhalo)"/></g>' +
+      '<g id="ap-sun-disc"><circle cx="0" cy="0" r="' + RSUN + '" fill="#fff1cf"/></g>' +
+      // moon: faint cool glow + bold warm-taupe crescent (translucent #f5d9a0 reads taupe over night sky)
+      '<g id="ap-moon"><ellipse cx="0" cy="0" rx="42" ry="30" fill="url(#ap-moonglow)" opacity="0"/><path d="' + crescent + '" fill="#f5d9a0" fill-opacity="0.6"/></g>' +
+      // jet: in front of sun & moon, behind the foreground landmarks. Occasional pass; look keyed to time of day.
+      '<g id="ap-jet">' +
+        '<rect x="-128" y="25.1" width="122" height="0.7" fill="url(#contrail)"/>' +
+        '<rect x="-128" y="26.8" width="122" height="0.7" fill="url(#contrail)"/>' +
+        '<g transform="translate(0,26)" fill="#3a3a42">' +
+          '<path d="M 4,0 L -10,-1.2 L -10,1.2 Z"/>' +
+          '<path d="M -2,0 L -10,-5 L -6,0 Z"/>' +
+          '<path d="M -2,0 L -10,5 L -6,0 Z"/>' +
+          '<path d="M -9,0 L -11.5,-3.5 L -9,-0.4 Z"/>' +
+        '</g>' +
+        '<g id="ap-jet-nav" transform="translate(0,26)" style="opacity:0">' +
+          '<circle cx="-9" cy="-4.4" r="0.75" fill="#ff3838"/>' +
+          '<circle cx="-9" cy="4.4" r="0.75" fill="#36ff48"/>' +
+          '<circle class="jet-strobe" cx="3" cy="0" r="0.8" fill="#fff"/>' +
+        '</g>' +
+      '</g>');
 
     // Ellipse arc: apex at p=0 (noon); sun rises ~p79 (left), sets ~p21 (right); moon = sun + 50%.
     const CX = 400, CY = 188, RX = 372, RY = 156;
@@ -1037,6 +1060,17 @@
     css += '@keyframes ap-disc-fill{0%{fill:#fff3d0}14%{fill:#ffc070}20%{fill:#ff9048}26%{fill:#ff7838}30%{fill:#ff7838}74%{fill:#ff7838}80%{fill:#ff9048}88%{fill:#ffc878}100%{fill:#fff3d0}}#ap-sun-disc circle{animation:ap-disc-fill ' + D + ' linear infinite;}';
     css += '@keyframes ap-moonglow-op{0%{opacity:0}30%{opacity:0}40%{opacity:0.25}50%{opacity:0.35}60%{opacity:0.25}70%{opacity:0}100%{opacity:0}}#ap-moon ellipse{animation:ap-moonglow-op ' + D + ' linear infinite;}';
 
+    // Jet: contrail colour + nav-light opacity ride the sky clock (named ap-*, so they pin with the sky);
+    // the traverse + strobe run independently. One slow pass every ~170s, varied across the day.
+    const JET = { day: ['#ffffff', 0], golden: ['#ffd6a8', 0], bluehour: ['#e8c2c2', 0.8], night: ['#c2cdec', 1], dawn: ['#ffd8c0', 0.15] };
+    let jt = '', jn = '';
+    for (const [pct, s] of TL) { jt += pct + '%{stop-color:' + JET[s][0] + ';}'; jn += pct + '%{opacity:' + JET[s][1] + ';}'; }
+    css += '@keyframes ap-jettrail{' + jt + '}#contrail-b{animation:ap-jettrail ' + D + ' linear infinite;}';
+    css += '@keyframes ap-jetnav{' + jn + '}#ap-jet-nav{animation:ap-jetnav ' + D + ' linear infinite;}';
+    css += '@keyframes jet-fly{0%,10%{transform:translateX(-160px)}15%{transform:translateX(965px)}100%{transform:translateX(965px)}}#ap-jet{animation:jet-fly 170s linear infinite;}';
+    css += '@keyframes jet-strobe{0%,90%{opacity:0.15}94%{opacity:1}100%{opacity:0.15}}.jet-strobe{animation:jet-strobe 1.5s linear infinite;}';
+    css += '@media (prefers-reduced-motion:reduce){#ap-jet{display:none;}}';
+
     const styleEl = document.createElement('style'); styleEl.id = 'sky-cycle-style'; styleEl.textContent = css; document.head.appendChild(styleEl);
 
     // ── interaction: one Web Animations clock, three modes, reduced-motion static pin ──
@@ -1060,7 +1094,7 @@
       };
       requestAnimationFrame(step);
     };
-    const playFree = () => { ++token; document.getAnimations().forEach(a => a.play()); };
+    const playFree = () => { ++token; skyAnims().forEach(a => a.play()); }; // resume sky only — train is independent
     const advance = () => {
       if (reduce.matches) { setTheme(html.dataset.theme !== 'dark'); return; } // static toggle (re-pin via observer)
       mode = mode === 'play' ? 'night' : mode === 'night' ? 'day' : 'play';
@@ -1069,15 +1103,29 @@
       else { easeTo(0); setTheme(false); }
     };
 
-    // Click the sky (upper band) → advance; lower band left for future train interaction. Keyboard too.
+    // Upper band (sky) → advance the sky mode; lower band → stop/resume the train (independent). Keyboard advances the sky.
     svg.insertAdjacentHTML('beforeend', '<rect id="ap-skyhit" x="0" y="0" width="800" height="110" fill="none" pointer-events="all" style="cursor:pointer"/>');
     svg.querySelector('#ap-skyhit').addEventListener('click', advance);
     if (banner) banner.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); advance(); } });
+    svg.insertAdjacentHTML('beforeend', '<rect id="ap-trainhit" x="0" y="110" width="800" height="70" fill="none" pointer-events="all" style="cursor:pointer"/>');
+    let trainStopped = false;
+    svg.querySelector('#ap-trainhit').addEventListener('click', () => {
+      trainStopped = !trainStopped;
+      document.getAnimations().filter(a => a.animationName === 'train-cycle').forEach(a => trainStopped ? a.pause() : a.play());
+    });
 
     // Start free-playing (or static under reduced motion). Defer a frame so the animations exist.
     requestAnimationFrame(() => { if (reduce.matches) pinStatic(); });
     reduce.addEventListener('change', () => { if (reduce.matches) pinStatic(); else { mode = 'play'; document.getAnimations().forEach(a => a.play()); } });
     new MutationObserver(() => { if (reduce.matches) pinStatic(); }).observe(html, { attributes: true, attributeFilter: ['data-theme'] });
+
+    // Top-right ☀/☽ button — flips page theme AND pins the sky to the matching pole (night/day), so the
+    // button and the sky-click stay in sync. It enters the cycle at night/day; the sky-click reaches play.
+    if (themeToggle) themeToggle.addEventListener('click', () => {
+      const dark = html.dataset.theme !== 'dark';
+      setTheme(dark);
+      if (!reduce.matches) { mode = dark ? 'night' : 'day'; easeTo(dark ? 50 : 0); }
+    });
   })();
 
   // 3. (Theme toggle is handled inside the sky-cycle block above.)
