@@ -183,8 +183,6 @@
     <!-- Wide bay water spanning the bridge — shifted left 30px -->
     <rect x="310" y="146" width="200" height="34" fill="url(#water-f)"/>
     <rect class="day-highlight" x="310" y="146" width="200" height="6"  fill="#c8eaf8" opacity="0.45"/>
-    <!-- Fog veil over SF area — shifted left 30px, widened to cover full SF zone -->
-    <rect class="day-highlight" x="310" y="140" width="305" height="14" fill="#f0e6d3" opacity="0.22"/>
     <!-- Stanford: 600–800 -->
     <ellipse cx="700" cy="160" rx="115" ry="26" fill="url(#green-f)"/>
     <ellipse class="day-highlight" cx="605" cy="161" rx="45"  ry="18" fill="#8aaa7a" opacity="0.7"/>
@@ -931,17 +929,17 @@
     footerBanner.innerHTML = FOOTER_HTML;
     footerBanner.setAttribute('role', 'button');
     footerBanner.setAttribute('tabindex', '0');
-    footerBanner.setAttribute('aria-label', 'Change the banner time of day: play, night, day');
+    footerBanner.setAttribute('aria-label', 'Stop or resume the banner animation');
     // (interaction is wired in the sky-cycle block below)
   }
 
   // 2b. Sky cycle + interactivity + theme.
   //     The banner sky runs a continuous day↔night cycle: the sun and moon trace one looping arc
   //     (sun by day, moon by night; rising left, setting right), the glow blooming at the horizon
-  //     where each disc rises/sets. Clicking the sky cycles three modes on one Web Animations clock:
-  //     ▶ play (free cycle) → ☽ night (pinned midnight, page → dark) → ☀ day (pinned noon, page →
-  //     light) → play. The top-right ☀/☽ button is an independent page light/dark toggle. The train
-  //     animates independently. prefers-reduced-motion freezes a static day/night frame.
+  //     where each disc rises/sets. Two controls on one Web Animations clock: clicking ANYWHERE on the
+  //     banner stops/continues time (sky, train, and jet freeze and resume together); the top-right
+  //     ☀/☽ button picks the day/night pole — flips the page theme, eases the sky there, and holds
+  //     time at that pole. prefers-reduced-motion freezes a static day/night frame.
   (function setupSky() {
     const html = document.documentElement;
     const themeToggle = document.getElementById('themeToggle');
@@ -1007,7 +1005,7 @@
 
     // Colour states (sky / ground / lights), keyed to sun altitude via the timeline below.
     const STATES = {
-      day:      { sky:['#c5dff0','#cfe6f4','#dceef8','#e6e2dd','#e8d9c2'], water:['#a8d4ec','#88bcd8'], grass:['#8aaa7a','#5a7a4a'], sand:['#e2d0b0','#cdb890'], bgh:['#b8c8d8','#a8b8c8'], midhill:'#a8a89a', gbeam:'#9a8a70', gpillar:'#8a7a60', dayhl:1, stars:0, hill:0, dubai:0, baylight:'#3d3020', crown:'#4a5868', spire:'#2a1a0e', dbody:'#48b4e4', droof:'#e8f0f4', fbody:'#1f3825', cbody:'#e8e8ec' },
+      day:      { sky:['#c5dff0','#cfe6f4','#dceef8','#dce8f2','#cfe2f0'], water:['#a8d4ec','#88bcd8'], grass:['#8aaa7a','#5a7a4a'], sand:['#e2d0b0','#cdb890'], bgh:['#b8c8d8','#a8b8c8'], midhill:'#a8a89a', gbeam:'#9a8a70', gpillar:'#8a7a60', dayhl:1, stars:0, hill:0, dubai:0, baylight:'#3d3020', crown:'#4a5868', spire:'#2a1a0e', dbody:'#48b4e4', droof:'#e8f0f4', fbody:'#1f3825', cbody:'#e8e8ec' },
       golden:   { sky:['#1e2f5e','#5a5a8e','#b87a86','#ee9568','#ffc873'], water:['#eca673','#6d5a78'], grass:['#6e5e3e','#2c2414'], sand:['#cf9a60','#97642f'], bgh:['#7e6e8e','#5f5070'], midhill:'#3d3250', gbeam:'#6a563c', gpillar:'#5e4c34', dayhl:0, stars:0, hill:0, dubai:0, baylight:'#6a5a40', crown:'#9a7a3a', spire:'#2a1a0e', dbody:'#3f6e86', droof:'#c7b596', fbody:'#1c3020', cbody:'#d6cdc2' },
       bluehour: { sky:['#0e1a3a','#1f2b52','#3a3a63','#7a4a5a','#cf7038'], water:['#5a4a5e','#0e1730'], grass:['#34384a','#161a26'], sand:['#4a4250','#2a2434'], bgh:['#34324e','#242238'], midhill:'#1f1d30', gbeam:'#6a563c', gpillar:'#5e4c34', dayhl:0, stars:0.5, hill:0.6, dubai:0.7, baylight:'#9a7a50', crown:'#caa040', spire:'#8a8a90', dbody:'#2a4456', droof:'#6a6c78', fbody:'#142418', cbody:'#6a6870' },
       night:    { sky:['#08061a','#0d0920','#120c2a','#180e22','#1e100a'], water:['#0a1428','#050a18'], grass:['#1a2a14','#0e1a0a'], sand:['#2a1e0e','#1e1408'], bgh:['#1a2030','#141a28'], midhill:'#1c1726', gbeam:'#3a2f1e', gpillar:'#332817', dayhl:0, stars:1, hill:1, dubai:1, baylight:'#f0e6c0', crown:'#f5d850', spire:'#d8dcd8', dbody:'#264458', droof:'#5a5c66', fbody:'#142418', cbody:'#2e3036' },
@@ -1073,58 +1071,55 @@
 
     const styleEl = document.createElement('style'); styleEl.id = 'sky-cycle-style'; styleEl.textContent = css; document.head.appendChild(styleEl);
 
-    // ── interaction: one Web Animations clock, three modes, reduced-motion static pin ──
+    // ── interaction: one Web Animations clock; two controls — click banner = stop/continue time,
+    //    ☀/☽ button = pick the day/night pole. reduced-motion → static pin. ──
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
     const durMs = () => CYCLE * 1000;
     const skyAnims = () => document.getAnimations().filter(a => a.animationName && a.animationName.indexOf('ap') === 0);
     const pinStatic = () => { const dark = html.dataset.theme === 'dark'; skyAnims().forEach(a => { a.pause(); try { a.currentTime = (dark ? 0.5 : 0) * durMs(); } catch (_) {} }); };
 
-    let mode = 'play', token = 0;
-    const easeTo = targetP => {                       // forward-only, constant rate; pauses sky, holds at target
+    // `timeStopped` is the only interactive state besides theme. Stop/continue freezes or resumes the
+    // WHOLE scene at once — sky, train, and jet — so nothing moves while time is stopped.
+    let timeStopped = false, token = 0;
+    const stopTime = () => { ++token; document.getAnimations().forEach(a => a.pause()); timeStopped = true; };
+    const startTime = () => { ++token; document.getAnimations().forEach(a => a.play()); timeStopped = false; };
+
+    const easeTo = (targetP, onDone) => {             // forward-only constant-rate scrub of the SKY to a pole
       const my = ++token, A = skyAnims(); if (!A.length) return;
       A.forEach(a => a.pause());
       const d = durMs(), cur = ((((A[0].currentTime || 0) % d) + d) % d) / d * 100;
       let dist = (((targetP - cur) % 100) + 100) % 100; if (dist < 2) dist += 100;
       const Tm = dist * 80, t0 = performance.now(); // 80ms per cycle-unit → a 50-unit day↔night toggle ≈ 4s
       const step = now => {
-        if (my !== token) return;
+        if (my !== token) return;                    // a stop/continue click interrupts the ease
         const k = Math.min(1, (now - t0) / Tm), ms = ((cur + dist * k) % 100) / 100 * d;
         A.forEach(a => { try { a.currentTime = ms; } catch (_) {} });
-        if (k < 1) requestAnimationFrame(step);
+        if (k < 1) requestAnimationFrame(step); else if (onDone) onDone();
       };
       requestAnimationFrame(step);
     };
-    const playFree = () => { ++token; skyAnims().forEach(a => a.play()); }; // resume sky only — train is independent
-    const advance = () => {
-      if (reduce.matches) { setTheme(html.dataset.theme !== 'dark'); return; } // static toggle (re-pin via observer)
-      mode = mode === 'play' ? 'night' : mode === 'night' ? 'day' : 'play';
-      if (mode === 'play') playFree();
-      else if (mode === 'night') { easeTo(50); setTheme(true); }
-      else { easeTo(0); setTheme(false); }
+
+    const toggleTime = () => {
+      if (reduce.matches) { setTheme(html.dataset.theme !== 'dark'); return; } // no cycle to stop → flip theme (re-pin via observer)
+      timeStopped ? startTime() : stopTime();
     };
 
-    // Upper band (sky) → advance the sky mode; lower band → stop/resume the train (independent). Keyboard advances the sky.
-    svg.insertAdjacentHTML('beforeend', '<rect id="ap-skyhit" x="0" y="0" width="800" height="110" fill="none" pointer-events="all" style="cursor:pointer"/>');
-    svg.querySelector('#ap-skyhit').addEventListener('click', advance);
-    if (banner) banner.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); advance(); } });
-    svg.insertAdjacentHTML('beforeend', '<rect id="ap-trainhit" x="0" y="110" width="800" height="70" fill="none" pointer-events="all" style="cursor:pointer"/>');
-    let trainStopped = false;
-    svg.querySelector('#ap-trainhit').addEventListener('click', () => {
-      trainStopped = !trainStopped;
-      document.getAnimations().filter(a => a.animationName === 'train-cycle').forEach(a => trainStopped ? a.pause() : a.play());
-    });
+    // The entire banner is one stop/continue-time surface (sky + train + jet move together). Keyboard mirrors it.
+    svg.insertAdjacentHTML('beforeend', '<rect id="ap-timehit" x="0" y="0" width="800" height="180" fill="none" pointer-events="all" style="cursor:pointer"/>');
+    svg.querySelector('#ap-timehit').addEventListener('click', toggleTime);
+    if (banner) banner.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleTime(); } });
 
     // Start free-playing (or static under reduced motion). Defer a frame so the animations exist.
     requestAnimationFrame(() => { if (reduce.matches) pinStatic(); });
-    reduce.addEventListener('change', () => { if (reduce.matches) pinStatic(); else { mode = 'play'; document.getAnimations().forEach(a => a.play()); } });
+    reduce.addEventListener('change', () => { if (reduce.matches) pinStatic(); else startTime(); });
     new MutationObserver(() => { if (reduce.matches) pinStatic(); }).observe(html, { attributes: true, attributeFilter: ['data-theme'] });
 
-    // Top-right ☀/☽ button — flips page theme AND pins the sky to the matching pole (night/day), so the
-    // button and the sky-click stay in sync. It enters the cycle at night/day; the sky-click reaches play.
+    // Top-right ☀/☽ button — picks the day/night MODE: flips page theme, eases the sky to the matching
+    // pole, then holds time there (train + jet included). Click the banner to continue the cycle.
     if (themeToggle) themeToggle.addEventListener('click', () => {
       const dark = html.dataset.theme !== 'dark';
       setTheme(dark);
-      if (!reduce.matches) { mode = dark ? 'night' : 'day'; easeTo(dark ? 50 : 0); }
+      if (!reduce.matches) easeTo(dark ? 50 : 0, stopTime);
     });
   })();
 
