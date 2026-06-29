@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>AI Discourse Corpus — Overview, Events &amp; Timeline</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: "Inter", system-ui, sans-serif; background: #f0e6d3; color: #2a1a0e; min-height: 100vh; }
+a { color: inherit; }
+
+/* ---- Header ---- */
+#hdr { position: sticky; top: 0; z-index: 20; background: #e8d9c2;
+  border-bottom: 1px solid #c8b498; padding: 0 24px; height: 52px;
+  display: flex; align-items: center; gap: 16px; }
+#hdr-title { font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+#hdr-count { font-size: 11px; color: #7a6244; border-left: 1px solid #c8b498; padding-left: 14px; }
+#tab-btns { margin-left: auto; display: flex; gap: 6px; }
+.tab-btn { background: #e0d0b8; border: 1px solid #c8b498; border-radius: 4px;
+  color: #5a4030; padding: 5px 14px; font-size: 10px; font-weight: 700; letter-spacing: .06em;
+  text-transform: uppercase; cursor: pointer; font-family: inherit; }
+.tab-btn:hover { background: #d0c0a8; }
+.tab-btn.active { background: #3d5a8a; border-color: #2d4a7a; color: #f0e6d3; }
+
+/* ---- Showing count ---- */
+#showing { padding: 10px 24px 0; font-size: 10px; color: #7a6244; }
+#empty, #loading { padding: 48px 24px; text-align: center; font-size: 12px; color: #7a6244; }
+.hidden { display: none !important; }
+#error-banner { margin: 20px 24px; padding: 14px 18px; background: #f0e0c8;
+  border: 1px solid #c46a3c; border-radius: 6px; font-size: 11px; color: #6a2a0a; line-height: 1.7; }
+.btn-more { background: #3d5a8a; border: none; border-radius: 4px; color: #f0e6d3;
+  padding: 8px 26px; font-size: 10px; font-weight: 700; letter-spacing: .07em;
+  text-transform: uppercase; cursor: pointer; font-family: inherit; }
+.btn-more:hover { background: #4d6a9a; }
+.fgroup { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+.flabel { font-size: 9px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  color: #7a6244; white-space: nowrap; }
+.fpill { background: #e0d0b8; border: 1px solid #c8b498; border-radius: 12px;
+  padding: 3px 11px; font-size: 10px; color: #5a4030; cursor: pointer;
+  font-family: inherit; white-space: nowrap; line-height: 1.6; user-select: none; }
+.fpill:hover { background: #d0c0a8; color: #2a1a0e; }
+.fpill.include { background: #3d5a8a; border-color: #2d4a7a; color: #f0e6d3; font-weight: 600; }
+select, #kw-search { background: #e8d9c2; border: 1px solid #c8b498; border-radius: 4px;
+  padding: 4px 8px; font-size: 10px; color: #2a1a0e; font-family: inherit; outline: none; }
+.fgroup-search input { width: 210px; background: #e8d9c2; border: 1px solid #c8b498; border-radius: 4px;
+  padding: 4px 8px; font-size: 10px; color: #2a1a0e; font-family: inherit; outline: none; }
+.fgroup-search input:focus { border-color: #3d5a8a; }
+
+/* ---- Overview dashboard ---- */
+#overview { padding: 20px 24px 40px; }
+.ov-intro { font-size: 11px; color: #8a7253; line-height: 1.7; max-width: 860px; margin-bottom: 20px; }
+.ov-hero { padding: 34px 4px 6px; }
+.ov-wordmark { font-size: 13px; font-weight: 700; letter-spacing: .34em; text-transform: uppercase; color: #a8423a; margin-bottom: 14px; }
+.ov-headline { font-size: 29px; font-weight: 700; line-height: 1.12; letter-spacing: -.01em; color: #2a1a0e; margin-bottom: 11px; max-width: 720px; }
+.ov-sub { font-size: 13.5px; line-height: 1.6; color: #7a6244; max-width: 600px; margin-bottom: 18px; }
+#ov-spine { width: 100%; height: auto; display: block; clip-path: inset(0 100% 0 0);
+  animation: ovReveal 1.7s cubic-bezier(.22,.61,.36,1) .2s forwards; }
+@keyframes ovReveal { to { clip-path: inset(0 0 0 0); } }
+.ov-slegend { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 10px; }
+.ov-slegend button { display: inline-flex; align-items: center; gap: 7px; background: none; border: none;
+  cursor: pointer; font-family: inherit; font-size: 11.5px; color: #5a4030; padding: 3px 0; }
+.ov-slegend button:not([data-nav]) { cursor: default; }
+.ov-slegend button[data-nav]:hover { color: #3d5a8a; }
+.ov-slegend i { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+.ov-slegend .arr { opacity: 0; transition: opacity .12s; }
+.ov-slegend button[data-nav]:hover .arr { opacity: .8; }
+.ov-statstrip { display: flex; flex-wrap: wrap; gap: 12px 26px; padding: 20px 4px 8px; margin-top: 14px; border-top: 1px solid #c8b498; }
+.ov-statstrip button { background: none; border: none; font-family: inherit; text-align: left; cursor: pointer; padding: 0; display: flex; flex-direction: column; }
+.ov-statstrip button:not([data-nav]) { cursor: default; }
+.ov-statstrip .n { font-size: 21px; font-weight: 700; color: #2a1a0e; font-variant-numeric: tabular-nums; line-height: 1; }
+.ov-statstrip button[data-nav]:hover .n { color: #3d5a8a; }
+.ov-statstrip .l { font-size: 9.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #a08868; margin-top: 5px; }
+#ov-detail-wrap { padding: 22px 4px 30px; }
+#ov-detail-btn { margin-bottom: 18px; }
+.ov-panels { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 18px; }
+.ov-panel { background: #ede0ca; border: 1px solid #c8b498; border-radius: 8px; padding: 16px 18px; }
+.ov-panel h3 { font-size: 10px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: #5a4030; margin-bottom: 14px; }
+.ov-panel h3 .sub { color: #8a7253; font-weight: 400; letter-spacing: 0; text-transform: none; margin-left: 6px; }
+.ov-bar { display: flex; align-items: center; gap: 9px; margin-bottom: 7px; font-size: 10px; }
+.ov-bar .k { width: 108px; text-align: right; color: #5a4030; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ov-bar .track { flex: 1; background: #e0d0b8; border-radius: 3px; height: 15px; overflow: hidden; }
+.ov-bar .fill { display: block; height: 100%; border-radius: 3px; min-width: 2px; }
+.ov-bar .v { width: 52px; color: #7a6244; font-variant-numeric: tabular-nums; }
+.ov-yr { display: flex; align-items: center; gap: 9px; margin-bottom: 5px; font-size: 9.5px; }
+.ov-yr .k { width: 34px; text-align: right; color: #5a4030; }
+.ov-yr .stack { flex: 1; display: flex; height: 15px; border-radius: 3px; overflow: hidden; background: #e0d0b8; }
+.ov-yr .seg { height: 100%; }
+.ov-yr .v { width: 46px; color: #7a6244; font-variant-numeric: tabular-nums; }
+.ov-legend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; font-size: 9px; color: #7a6045; }
+.ov-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.ov-legend i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+.ov-panel.wide { grid-column: 1 / -1; }
+.cm-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.cm-label { width: 150px; font-size: 10px; text-align: right; color: #5a4030; white-space: nowrap; }
+.cm-label b { font-variant-numeric: tabular-nums; }
+.cm-label .lc { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
+.cm-bar { display: flex; height: 22px; border-radius: 3px; overflow: hidden; }
+.cm-seg { display: flex; align-items: center; padding: 0 6px; min-width: 0; height: 100%;
+  font-size: 8.5px; color: rgba(255,255,255,.92); white-space: nowrap; overflow: hidden;
+  border-right: 1px solid rgba(240,230,211,.55); }
+.cm-seg:last-child { border-right: none; }
+.cm-note { font-size: 9px; color: #8a7253; margin-top: 4px; }
+
+/* ---- Timeline ---- */
+#timeline { padding: 18px 24px 40px; }
+.tl-controls { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+.tl-chart { background: #ede0ca; border: 1px solid #c8b498; border-radius: 8px; padding: 16px 18px; margin-bottom: 18px; }
+.tl-chart h3 { font-size: 10px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: #5a4030; margin-bottom: 14px; }
+.tl-list { display: flex; flex-direction: column; gap: 0; }
+.tl-row { display: flex; align-items: baseline; gap: 12px; padding: 7px 4px; border-bottom: 1px solid #e0d4bd; font-size: 11px; }
+.tl-row:hover { background: #ede0ca; }
+.tl-date { width: 78px; color: #7a6244; font-variant-numeric: tabular-nums; flex-shrink: 0; font-size: 10px; }
+.tl-chip { flex-shrink: 0; width: 84px; font-size: 8px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+  color: #fff; padding: 2px 0; text-align: center; border-radius: 9px; }
+.tl-actor { flex-shrink: 0; width: 116px; color: #7a6045; font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tl-title { flex: 1; color: #2a1a0e; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tl-title a { text-decoration: none; }
+.tl-title a:hover { color: #3d5a8a; text-decoration: underline; }
+
+/* ---- Events (clustered, sparse) ---- */
+#events { padding: 18px 24px 40px; }
+.ev-intro { font-size: 11px; color: #8a7253; line-height: 1.7; max-width: 920px; margin-bottom: 14px; }
+.ev { background: #ede0ca; border: 1px solid #c8b498; border-radius: 7px; margin-bottom: 8px; overflow: hidden; }
+.ev.ev-single { opacity: .64; }
+.ev.ev-single:hover { opacity: 1; }
+.ev-head:focus { outline: 2px solid #3d5a8a; outline-offset: -2px; }
+.ev-head:focus:not(:focus-visible) { outline: none; }
+.ev-jump { padding: 8px 0 2px; }
+.ev-jump a { font-size: 9.5px; font-weight: 600; color: #3d5a8a; text-decoration: none; letter-spacing: .03em; }
+.ev-jump a:hover { text-decoration: underline; }
+.ev-head { display: flex; align-items: center; gap: 12px; padding: 11px 16px; cursor: pointer; }
+.ev-head:hover { background: #e6d7bf; }
+.ev-tog { width: 12px; flex-shrink: 0; color: #8a7253; font-size: 9px; }
+.ev-date { width: 80px; font-size: 10px; color: #7a6244; font-variant-numeric: tabular-nums; flex-shrink: 0; }
+.ev-dots { display: flex; gap: 3px; width: 70px; flex-shrink: 0; flex-wrap: wrap; }
+.ev-dots i { width: 9px; height: 9px; border-radius: 2px; display: block; }
+.ev-label { flex: 1; font-size: 13px; font-weight: 700; color: #2a1a0e; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.ev-ent { font-size: 8.5px; color: #8a7253; flex-shrink: 0; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ev-meta { font-size: 9.5px; color: #7a6244; flex-shrink: 0; white-space: nowrap; width: 96px; text-align: right; }
+.ev-score { font-size: 11px; color: #5a4a8a; font-weight: 700; width: 40px; text-align: right; flex-shrink: 0; font-variant-numeric: tabular-nums; }
+.ev-members { border-top: 1px solid #e0d4bd; padding: 6px 16px 10px 40px; background: #f3e9d6; }
+.ev-mem { display: flex; align-items: baseline; gap: 10px; padding: 4px 0; font-size: 10.5px; border-bottom: 1px solid #ece0c9; }
+.ev-mem:last-child { border-bottom: none; }
+.ev-mem .d { width: 74px; color: #7a6244; font-size: 9.5px; flex-shrink: 0; font-variant-numeric: tabular-nums; }
+.ev-mem .c { width: 78px; flex-shrink: 0; font-size: 8px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: #fff; text-align: center; border-radius: 8px; padding: 2px 0; }
+.ev-mem .a { width: 104px; flex-shrink: 0; color: #7a6045; font-size: 9.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ev-mem .t { flex: 1; color: #2a1a0e; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.ev-mem .t a { text-decoration: none; }
+.ev-mem .t a:hover { color: #3d5a8a; text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<div id="hdr">
+  <span id="hdr-title">AI Discourse Corpus</span>
+  <span id="hdr-count"></span>
+  <div id="tab-btns">
+    <button class="tab-btn active" data-tab="overview">Overview</button>
+    <button class="tab-btn" data-tab="events">Events</button>
+    <button class="tab-btn" data-tab="timeline">Timeline</button>
+  </div>
+</div>
+
+<div id="loading">Loading&hellip;</div>
+<div id="error-banner" class="hidden"></div>
+<div id="overview" class="hidden"></div>
+<div id="events" class="hidden"></div>
+<div id="timeline" class="hidden"></div>
+
+<script>
+/* =================================================================
+   Static public port of the AI Discourse Corpus Explorer.
+   Only the Overview + Events (spine) + Timeline views — the three
+   aggregate layers — served from bundled JSON (no Datasette backend).
+   The full corpus (docs / tweets / HN / census rows) is NOT shipped.
+   ================================================================= */
+
+/* ================= config ================= */
+const CLASS_COLORS = { lab:"#3d5a8a", evaluator:"#3d7a5a", commentator:"#8a5a7a", artifact:"#c46a3c", regulator:"#a8423a" };
+const ACCESS_COLORS = { public:"#3d7a5a", "partial-holdout":"#c0902a", private:"#a8423a", unknown:"#9a8868" };
+const LAYER_COLORS = { lab:"#3d5a8a", evaluator:"#3d7a5a", commentator:"#8a5a7a",
+  regulator:"#a8423a", artifact:"#c46a3c", tweet:"#2a8a8a", hn:"#c0902a", benchmark:"#5a4a8a" };
+const LAYER_ORDER = ["lab","evaluator","commentator","regulator","artifact","tweet","hn","benchmark"];
+
+let EVENTS = [];    // timeline rows: {date, layer, actor, title, url}
+let CLUSTERS = [];  // event spine: {date, label, layers, n_members, n_layers, score, entities, members}
+
+const state = {
+  tab: "overview",
+  _ov: null,
+  tl: { layers: new Set(), q: "", since: "", offset: 0, _rows: [] },
+  ev: { layers: new Set(), q: "", since: "", sort: "date", impact: "notable", offset: 0, _rows: [] },
+};
+
+/* ================= helpers ================= */
+const $ = s => document.querySelector(s);
+const esc = s => (s ?? "").toString().replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmtN = n => n == null ? "" : n.toLocaleString();
+const byDateDesc = (a, b) => (b.date || "").localeCompare(a.date || "");
+
+/* ================= view switching ================= */
+function refresh() {
+  writeHash();
+  const ov = state.tab === "overview", tl = state.tab === "timeline", ev = state.tab === "events";
+  $("#loading").classList.add("hidden");
+  $("#overview").classList.toggle("hidden", !ov);
+  $("#timeline").classList.toggle("hidden", !tl);
+  $("#events").classList.toggle("hidden", !ev);
+  if (ov) renderOverview();
+  else if (tl) renderTimeline();
+  else if (ev) renderEvents();
+}
+
+/* ================= overview dashboard ================= */
+const clsColor = c => CLASS_COLORS[c] || "#9a8868";
+const accColor = c => ACCESS_COLORS[c] || "#9a8868";
+const lyrColor = l => LAYER_COLORS[l] || "#9a8868";
+
+function ovBars(rows) {
+  const max = Math.max(1, ...rows.map(r => r.v));
+  return rows.map(r => `<div class="ov-bar"><span class="k" title="${esc(r.k)}">${esc(r.k)}</span>
+    <span class="track"><span class="fill" style="width:${(r.v/max*100).toFixed(1)}%;background:${r.color}"></span></span>
+    <span class="v">${fmtN(r.v)}</span></div>`).join("");
+}
+function ovGroupYears(rows, catKey) {
+  const m = new Map();
+  for (const r of rows) {
+    if (!m.has(r.y)) m.set(r.y, { y: r.y, total: 0, segs: [] });
+    const o = m.get(r.y); o.total += r.c; o.segs.push({ cat: r[catKey] || "unknown", v: r.c });
+  }
+  return [...m.values()].sort((a, b) => a.y < b.y ? -1 : 1);
+}
+function ovStack(years, colorMap) {
+  const max = Math.max(1, ...years.map(o => o.total));
+  return years.map(o => {
+    const segs = o.segs.map(s => `<span class="seg" title="${esc(s.cat)}: ${fmtN(s.v)}"
+      style="width:${(s.v/max*100).toFixed(2)}%;background:${colorMap(s.cat)}"></span>`).join("");
+    return `<div class="ov-yr"><span class="k">${esc(o.y)}</span><span class="stack">${segs}</span><span class="v">${fmtN(o.total)}</span></div>`;
+  }).join("");
+}
+function ovLegend(cats, colorMap) {
+  return `<div class="ov-legend">${cats.map(c =>
+    `<span><i style="background:${colorMap(c)}"></i>${esc(c)}</span>`).join("")}</div>`;
+}
+
+const SPINE_COLORS = { self: "#3d5a8a", measurement: "#3d7a5a", reception: "#8a5a7a", regulation: "#a8423a" };
+// only "reception" links onward (-> Timeline); the others describe layers whose
+// row-level tabs are not part of this public slice, so they stay non-navigating.
+const SPINE_LAYERS = [
+  { key: "self", label: "self-presentation · labs", nav: "" },
+  { key: "measurement", label: "measurement · evaluators + benchmarks", nav: "" },
+  { key: "reception", label: "reception · commentary, HN, tweets", nav: "#tab=timeline" },
+  { key: "regulation", label: "regulation · governments", nav: "" },
+];
+function navTo(hash) { history.pushState(null, "", hash); applyHash(); refresh(); }
+
+function buildSpine(svg, series) {
+  if (!svg || !series || !series.length) return;
+  const order = ["regulation", "self", "reception", "measurement"];
+  const n = series.length, x0 = 42, x1 = 638, yc = 102, maxH = 150;
+  const totals = series.map(d => order.reduce((s, k) => s + d[k], 0));
+  const maxT = Math.max(1, ...totals), scale = maxH / maxT;
+  const xOf = i => x0 + i * (x1 - x0) / (n - 1);
+  const bands = {}; order.forEach(k => bands[k] = { top: [], bot: [] });
+  series.forEach((d, i) => {
+    let y = yc - totals[i] * scale / 2;
+    order.forEach(k => { const h = d[k] * scale; bands[k].top.push([xOf(i), y]); bands[k].bot.push([xOf(i), y + h]); y += h; });
+  });
+  const smooth = pts => {
+    let d = "M" + pts[0][0].toFixed(1) + "," + pts[0][1].toFixed(1);
+    for (let i = 1; i < pts.length; i++) {
+      const p0 = pts[i - 1], p1 = pts[i], mx = (p0[0] + p1[0]) / 2;
+      d += " C" + mx.toFixed(1) + "," + p0[1].toFixed(1) + " " + mx.toFixed(1) + "," + p1[1].toFixed(1) + " " + p1[0].toFixed(1) + "," + p1[1].toFixed(1);
+    }
+    return d;
+  };
+  const area = k => { const t = bands[k].top, b = bands[k].bot.slice().reverse(); return smooth(t) + " L" + b[0][0].toFixed(1) + "," + b[0][1].toFixed(1) + " " + smooth(b).slice(1) + " Z"; };
+  let f = "";
+  order.forEach(k => { f += `<path d="${area(k)}" fill="${SPINE_COLORS[k]}" fill-opacity="0.92"/>`; });
+  series.forEach((d, i) => { if (i % 2 === 0 || i === n - 1) f += `<text x="${xOf(i).toFixed(1)}" y="212" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" fill="#a08868">${d.year}</text>`; });
+  const lx = xOf(n - 1).toFixed(1);
+  f += `<line x1="${lx}" y1="16" x2="${lx}" y2="186" stroke="#a8423a" stroke-width="1" stroke-dasharray="3 3" opacity="0.45"/>`;
+  f += `<text x="${lx}" y="11" text-anchor="middle" font-family="Inter,sans-serif" font-size="9.5" fill="#a8423a" letter-spacing="1">NOW</text>`;
+  svg.innerHTML = f;
+}
+
+function renderOverview() {
+  const ov = $("#overview");
+  if (!state._ov) { ov.innerHTML = `<div id="error-banner">overview.json missing.</div>`; return; }
+  const O = state._ov, T = O.totals;
+  const legend = SPINE_LAYERS.map(L =>
+    `<button ${L.nav ? `data-nav="${L.nav}"` : ""}><i style="background:${SPINE_COLORS[L.key]}"></i>${L.label}${L.nav ? `<span class="arr">→</span>` : ""}</button>`).join("");
+  const stat = (n, l, nav) => `<button ${nav ? `data-nav="${nav}"` : ""}><span class="n">${fmtN(n)}</span><span class="l">${l}</span></button>`;
+  ov.innerHTML = `
+    <div class="ov-hero">
+      <div class="ov-wordmark">AI Discourse</div>
+      <div class="ov-headline">How the AI ecosystem talks about itself and each other.</div>
+      <div class="ov-sub">A research corpus of frontier labs, evaluators, commentators, and regulators —
+        read in full, across every layer, over time (${T.year_min}–${T.year_max}).</div>
+      <svg id="ov-spine" viewBox="0 0 680 222" role="img" aria-label="Streamgraph of corpus communication volume by layer per year, swelling toward the present"></svg>
+      <div class="ov-slegend">${legend}</div>
+    </div>
+    <div class="ov-statstrip">
+      ${stat(T.documents, "Documents", "")}
+      ${stat(T.benchmarks, "Benchmarks", "")}
+      ${stat(T.events, "Events", "#tab=events")}
+      ${stat(T.tweets, "Tweets", "")}
+      ${stat(T.hn_ai, "HN AI stories", "")}
+      ${stat(T.actors, "Actors", "")}
+    </div>
+    <div class="ov-intro" style="padding-top:6px;">This is a public preview: the <b>Overview</b>, the clustered
+      <b>Events</b> spine, and the cross-layer <b>Timeline</b> are browsable here. The underlying document, tweet,
+      HN, and benchmark-census rows are part of the full corpus and are not published in this preview.</div>
+    <div id="ov-detail-wrap">
+      <button id="ov-detail-btn" class="btn-more">Show detailed breakdowns</button>
+      <div id="ov-detail" class="hidden"></div>
+    </div>`;
+  buildSpine($("#ov-spine"), O.spine);
+  ov.querySelectorAll("[data-nav]").forEach(el => el.addEventListener("click", () => navTo(el.dataset.nav)));
+  $("#ov-detail-btn").addEventListener("click", () => {
+    const d = $("#ov-detail"), btn = $("#ov-detail-btn");
+    if (d.dataset.built !== "1") { d.innerHTML = ovDetailPanels(O); d.dataset.built = "1"; }
+    btn.textContent = d.classList.toggle("hidden") ? "Show detailed breakdowns" : "Hide detailed breakdowns";
+  });
+}
+
+function ovDetailPanels(O) {
+  const cls = O.docs_by_class.map(([cat, c]) => ({ cat, c }));
+  const docsTotal = cls.reduce((a, r) => a + r.c, 0);
+  const clsCats = cls.map(r => r.cat);
+  const acc = O.access.map(([cat, c]) => ({ cat, c })), accCats = acc.map(r => r.cat), T = O.totals;
+  const byClass = {};
+  for (const [k, cat, c] of O.actors) (byClass[cat] = byClass[cat] || []).push({ k, c });
+  const cmRows = cls.map(ci => {
+    const actors = (byClass[ci.cat] || []).sort((a, b) => b.c - a.c);
+    const rowW = Math.max(ci.c / docsTotal * 100, 9);
+    const segs = actors.map(a => {
+      const segVw = rowW * a.c / ci.c;
+      return `<span class="cm-seg" style="width:${(a.c/ci.c*100).toFixed(2)}%;background:${clsColor(ci.cat)}"
+        title="${esc(a.k)}: ${fmtN(a.c)}">${segVw > 1.8 ? esc(a.k) : ""}</span>`;
+    }).join("");
+    return `<div class="cm-row"><span class="cm-label"><span class="lc" style="background:${clsColor(ci.cat)}"></span>${esc(ci.cat)} <b>${fmtN(ci.c)}</b></span>
+      <span class="cm-bar" style="width:${rowW.toFixed(2)}%">${segs}</span></div>`;
+  }).join("");
+  const nFloored = cls.filter(c => c.c / docsTotal * 100 < 9).length;
+  const domRows = O.domains_top.map(([k, v]) => ({ k, v }));
+  const docsYr = O.docs_year_class.map(([y, cat, c]) => ({ y, cat, c }));
+  const cenYr = O.census_year_access.map(([y, cat, c]) => ({ y, cat, c }));
+  return `<div class="ov-panels">
+    <div class="ov-panel wide"><h3>The collection <span class="sub">documents by class → actor, width ∝ count</span></h3>
+      ${cmRows}
+      <div class="cm-note">Document corpus only — the other sets are separate units, don't sum:
+        ${fmtN(T.tweets)} tweets · ${fmtN(T.hn_ai)} HN AI stories · ${fmtN(T.benchmarks)} benchmarks.
+        ${nFloored ? `Bars under 9% are widened to a floor for legibility — read the number, not the length.` : ""}</div>
+      ${ovLegend(clsCats, clsColor)}</div>
+    <div class="ov-panel"><h3>Benchmarks by domain <span class="sub">domain tags · one benchmark spans several</span></h3>
+      ${ovBars(domRows.map(r => ({ k: r.k, v: r.v, color: "#5a4a8a" })))}</div>
+    <div class="ov-panel"><h3>Benchmark access <span class="sub">can the test items be obtained?</span></h3>
+      ${ovBars(acc.map(r => ({ k: r.cat, v: r.c, color: accColor(r.cat) })))}
+      <div class="cm-note"><b>public</b> = items obtainable · <b>partial-holdout</b> = test set withheld · <b>unknown</b> = not yet determined / release-pending (<i>not</i> “private/closed”). <b>Provisional — pre-validation.</b></div></div>
+    <div class="ov-panel"><h3>Documents over time <span class="sub">stacked by class</span></h3>
+      ${ovStack(ovGroupYears(docsYr, "cat"), clsColor)}${ovLegend(clsCats, clsColor)}</div>
+    <div class="ov-panel"><h3>Benchmarks over time <span class="sub">stacked by access</span></h3>
+      ${ovStack(ovGroupYears(cenYr, "cat"), accColor)}${ovLegend(accCats, accColor)}</div>
+  </div>`;
+}
+
+/* ================= timeline (the cross-layer spine) ================= */
+function tlPass(r) {
+  if (state.tl.layers.size && !state.tl.layers.has(r.layer)) return false;
+  if (state.tl.since && !((r.date || "") >= state.tl.since)) return false;
+  if (state.tl.q && !((r.title || "").toLowerCase().includes(state.tl.q.toLowerCase()))) return false;
+  return true;
+}
+
+function renderTimeline() {
+  const td = $("#timeline");
+  writeHash();
+  const layerPills = LAYER_ORDER.map(l => {
+    const on = state.tl.layers.has(l);
+    return `<button class="fpill ${on ? "include" : ""}" data-layer="${l}"
+      style="${on ? `background:${lyrColor(l)};border-color:${lyrColor(l)};color:#f0e6d3` : ""}">${l}</button>`;
+  }).join("");
+  const ys = []; for (let y = 2026; y >= 2007; y--) ys.push(y);
+  td.innerHTML = `
+    <div class="tl-controls">
+      <div class="fgroup"><span class="flabel">Layers</span>${layerPills}</div>
+      <div class="fgroup"><span class="flabel">Since</span>
+        <select id="tl-since"><option value="">All years</option>
+        ${ys.map(y => `<option ${state.tl.since==y?"selected":""}>${y}</option>`).join("")}</select></div>
+      <div class="fgroup fgroup-search">
+        <input id="tl-q" type="text" placeholder="Filter titles…" value="${esc(state.tl.q)}"></div>
+    </div>
+    <div class="tl-chart"><h3>Events per year <span class="sub">stacked by layer</span></h3>
+      <div id="tl-chart-body">…</div></div>
+    <div id="tl-showing" style="font-size:10px;color:#7a6244;margin-bottom:8px;"></div>
+    <div class="tl-list" id="tl-list"></div>
+    <div id="tl-more-wrap" style="text-align:center;padding:18px;"></div>`;
+
+  td.querySelectorAll(".fpill[data-layer]").forEach(p => p.addEventListener("click", () => {
+    const l = p.dataset.layer;
+    state.tl.layers.has(l) ? state.tl.layers.delete(l) : state.tl.layers.add(l);
+    renderTimeline();
+  }));
+  $("#tl-since").addEventListener("change", e => { state.tl.since = e.target.value; renderTimeline(); });
+  const q = $("#tl-q");
+  q.addEventListener("keydown", e => { if (e.key === "Enter") { state.tl.q = q.value.trim(); renderTimeline(); } });
+
+  const filtered = EVENTS.filter(tlPass);
+  const counts = {};
+  for (const r of filtered) { const y = (r.date || "").slice(0, 4); if (!y) continue; const k = y + "|" + r.layer; counts[k] = (counts[k] || 0) + 1; }
+  const chartRows = Object.entries(counts).map(([k, c]) => { const i = k.indexOf("|"); return { y: k.slice(0, i), cat: k.slice(i + 1), c }; });
+  const present = LAYER_ORDER.filter(l => filtered.some(r => r.layer === l));
+  $("#tl-chart-body").innerHTML =
+    ovStack(ovGroupYears(chartRows, "cat"), lyrColor) + ovLegend(present, lyrColor);
+
+  state.tl._rows = filtered.sort(byDateDesc);
+  state.tl.offset = 0;
+  loadTimelineRows(true, filtered.length);
+}
+
+function loadTimelineRows(reset, total) {
+  const rows = state.tl._rows.slice(state.tl.offset, state.tl.offset + 80);
+  const html = rows.map(r => `<div class="tl-row">
+    <span class="tl-date">${esc(r.date || "")}</span>
+    <span class="tl-chip" style="background:${lyrColor(r.layer)}">${esc(r.layer)}</span>
+    <span class="tl-actor">${esc(r.actor || "—")}</span>
+    <span class="tl-title">${r.url ? `<a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.title||"(untitled)")}</a>` : esc(r.title||"(untitled)")}</span>
+  </div>`).join("");
+  const list = $("#tl-list");
+  reset ? (list.innerHTML = html) : list.insertAdjacentHTML("beforeend", html);
+  state.tl.offset += rows.length;
+  $("#tl-showing").textContent = `${fmtN(Math.min(state.tl.offset, total))} of ${fmtN(total)} events`;
+  const mw = $("#tl-more-wrap");
+  mw.innerHTML = state.tl.offset < total ? `<button id="tl-more" class="btn-more">Load more</button>` : "";
+  const mb = mw.querySelector("button");
+  if (mb) mb.addEventListener("click", () => loadTimelineRows(false, total));
+}
+
+/* ================= events (clustered, sparse high-profile timeline) ============ */
+function evPass(r) {
+  if (state.ev.impact === "major") { if (!(r.score >= 120)) return false; }
+  else if (state.ev.impact === "notable") { if (!(r.n_layers >= 2)) return false; }
+  for (const l of state.ev.layers) { if (!((r.layers || "").includes(l))) return false; }
+  if (state.ev.since && !((r.date || "") >= state.ev.since)) return false;
+  if (state.ev.q && !((r.label || "").toLowerCase().includes(state.ev.q.toLowerCase()))) return false;
+  return true;
+}
+
+function renderEvents() {
+  const ed = $("#events");
+  writeHash();
+  const pills = LAYER_ORDER.map(l => {
+    const on = state.ev.layers.has(l);
+    return `<button class="fpill ${on ? "include" : ""}" data-elayer="${l}"
+      style="${on ? `background:${lyrColor(l)};border-color:${lyrColor(l)};color:#f0e6d3` : ""}">${l}</button>`;
+  }).join("");
+  const ys = []; for (let y = 2026; y >= 2007; y--) ys.push(y);
+  const opt = (v, lbl, cur) => `<option value="${v}" ${cur==v?"selected":""}>${lbl}</option>`;
+  ed.innerHTML = `
+    <div class="ev-intro">One row per <b>real-world event</b> — the high-salience artifacts that cluster
+      in time around a shared name (a launch, a benchmark, a regulation) collapsed together. Click any row to
+      expand its constituent posts across layers. <b>Heuristic</b> clustering (±10 days + shared entity), not
+      curated: headlines and the grey entity chips are auto-extracted and can misfire. <i>Cross-layer</i> shows
+      events seen in ≥2 source types; <i>All clustered</i> includes single (uncorroborated) posts.</div>
+    <div class="tl-controls">
+      <div class="fgroup"><span class="flabel">Scope</span>
+        <select id="ev-min">${opt("major","Major",state.ev.impact)}${opt("notable","Cross-layer",state.ev.impact)}${opt("all","All clustered",state.ev.impact)}</select></div>
+      <div class="fgroup"><span class="flabel">Sort</span>
+        <select id="ev-sort">${opt("date","Chronological",state.ev.sort)}${opt("score","By impact",state.ev.sort)}</select></div>
+      <div class="fgroup"><span class="flabel">Involves</span>${pills}</div>
+      <div class="fgroup"><span class="flabel">Since</span>
+        <select id="ev-since"><option value="">All years</option>${ys.map(y => `<option ${state.ev.since==y?"selected":""}>${y}</option>`).join("")}</select></div>
+      <div class="fgroup fgroup-search"><input id="ev-q" type="text" placeholder="Filter events…" value="${esc(state.ev.q)}"></div>
+    </div>
+    <div id="ev-showing" style="font-size:10px;color:#7a6244;margin-bottom:10px;"></div>
+    <div id="ev-list"></div>
+    <div id="ev-more-wrap" style="text-align:center;padding:18px;"></div>`;
+
+  $("#ev-min").addEventListener("change", e => { state.ev.impact = e.target.value; renderEvents(); });
+  $("#ev-sort").addEventListener("change", e => { state.ev.sort = e.target.value; renderEvents(); });
+  $("#ev-since").addEventListener("change", e => { state.ev.since = e.target.value; renderEvents(); });
+  ed.querySelectorAll(".fpill[data-elayer]").forEach(p => p.addEventListener("click", () => {
+    const l = p.dataset.elayer;
+    state.ev.layers.has(l) ? state.ev.layers.delete(l) : state.ev.layers.add(l);
+    renderEvents();
+  }));
+  const q = $("#ev-q");
+  q.addEventListener("keydown", e => { if (e.key === "Enter") { state.ev.q = q.value.trim(); renderEvents(); } });
+
+  let filtered = CLUSTERS.filter(evPass);
+  filtered.sort(state.ev.sort === "score" ? (a, b) => b.score - a.score : byDateDesc);
+  state.ev._rows = filtered;
+  state.ev.offset = 0;
+  loadEventRows(true, filtered.length);
+}
+
+function loadEventRows(reset, total) {
+  const rows = state.ev._rows.slice(state.ev.offset, state.ev.offset + 40);
+  const html = rows.map(r => {
+    const dots = (r.layers || "").split(",").filter(Boolean)
+      .map(l => `<i style="background:${lyrColor(l)}" title="${esc(l)}"></i>`).join("");
+    let members = []; try { members = JSON.parse(r.members || "[]"); } catch (e) {}
+    const mem = members.map(m => `<div class="ev-mem">
+      <span class="d">${esc(m.date || "")}</span>
+      <span class="c" style="background:${lyrColor(m.layer)}">${esc(m.layer)}</span>
+      <span class="a">${esc(m.actor || "—")}</span>
+      <span class="t">${m.url ? `<a href="${esc(m.url)}" target="_blank" rel="noopener">${esc((m.title||"").replace(/\s+/g," "))}</a>` : esc((m.title||"").replace(/\s+/g," "))}</span>
+    </div>`).join("");
+    const primary = (r.entities || "").split(",")[0] || (r.label || "").split(/\s+/)[0];
+    const jump = `<div class="ev-jump"><a href="#" data-q="${esc(primary)}">↗ see the Timeline firehose for “${esc(primary)}”</a></div>`;
+    return `<div class="ev${r.n_members == 1 ? " ev-single" : ""}">
+      <div class="ev-head" tabindex="0" role="button" aria-expanded="false">
+        <span class="ev-tog">▸</span>
+        <span class="ev-date">${esc(r.date || "")}</span>
+        <span class="ev-dots">${dots}</span>
+        <span class="ev-label">${esc(r.label || "(untitled)")}</span>
+        <span class="ev-ent" title="auto-extracted entities — may misfire">${esc(r.entities || "")}</span>
+        <span class="ev-meta">${r.n_members == 1 ? "single post" : fmtN(r.n_members) + " posts"} · ${r.n_layers}L</span>
+        <span class="ev-score">${Math.round(r.score)}</span>
+      </div>
+      <div class="ev-members hidden">${mem}${jump}</div></div>`;
+  }).join("");
+  const list = $("#ev-list");
+  reset ? (list.innerHTML = html) : list.insertAdjacentHTML("beforeend", html);
+  const toggle = h => {
+    const open = h.nextElementSibling.classList.toggle("hidden");
+    h.querySelector(".ev-tog").textContent = open ? "▸" : "▾";
+    h.setAttribute("aria-expanded", String(!open));
+  };
+  list.querySelectorAll(".ev-head").forEach(h => {
+    if (h.dataset.w) return; h.dataset.w = "1";
+    h.addEventListener("click", () => toggle(h));
+    h.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(h); } });
+  });
+  list.querySelectorAll(".ev-jump a").forEach(a => {
+    if (a.dataset.w) return; a.dataset.w = "1";
+    a.addEventListener("click", e => { e.preventDefault(); e.stopPropagation(); gotoTimeline(a.dataset.q); });
+  });
+  state.ev.offset += rows.length;
+  $("#ev-showing").textContent = `${fmtN(Math.min(state.ev.offset, total))} of ${fmtN(total)} events`;
+  const mw = $("#ev-more-wrap");
+  mw.innerHTML = state.ev.offset < total ? `<button id="ev-more" class="btn-more">Load more</button>` : "";
+  const mb = mw.querySelector("button");
+  if (mb) mb.addEventListener("click", () => loadEventRows(false, total));
+}
+
+/* ================= deep-link state (URL hash) ================= */
+function resetFilters() {
+  state.tl = { layers: new Set(), q: "", since: "", offset: 0, _rows: [] };
+  state.ev = { layers: new Set(), q: "", since: "", sort: "date", impact: "notable", offset: 0, _rows: [] };
+}
+function setActiveTab(tab) {
+  document.querySelectorAll(".tab-btn").forEach(x => x.classList.toggle("active", x.dataset.tab === tab));
+  state.tab = tab;
+}
+function writeHash() {
+  const p = new URLSearchParams();
+  p.set("tab", state.tab);
+  if (state.tab === "timeline") {
+    if (state.tl.layers.size) p.set("layers", [...state.tl.layers].join(","));
+    if (state.tl.since) p.set("since", state.tl.since);
+    if (state.tl.q) p.set("q", state.tl.q);
+  } else if (state.tab === "events") {
+    if (state.ev.impact !== "notable") p.set("scope", state.ev.impact);
+    if (state.ev.sort !== "date") p.set("sort", state.ev.sort);
+    if (state.ev.layers.size) p.set("layers", [...state.ev.layers].join(","));
+    if (state.ev.since) p.set("since", state.ev.since);
+    if (state.ev.q) p.set("q", state.ev.q);
+  }
+  const h = "#" + p.toString();
+  if (location.hash !== h) history.replaceState(null, "", h);
+}
+const VALID_TABS = new Set(["overview", "events", "timeline"]);
+const yr = v => /^20\d\d$/.test(v || "") ? v : "";
+function applyHash() {
+  const p = new URLSearchParams(location.hash.slice(1));
+  const raw = p.get("tab") || "overview";
+  const tab = VALID_TABS.has(raw) ? raw : "overview";
+  setActiveTab(tab); resetFilters();
+  if (tab === "timeline") {
+    if (p.get("layers")) state.tl.layers = new Set(p.get("layers").split(","));
+    state.tl.since = yr(p.get("since")); state.tl.q = p.get("q") || "";
+  } else if (tab === "events") {
+    state.ev.impact = ["major", "notable", "all"].includes(p.get("scope")) ? p.get("scope") : "notable";
+    state.ev.sort = ["date", "score"].includes(p.get("sort")) ? p.get("sort") : "date";
+    if (p.get("layers")) state.ev.layers = new Set(p.get("layers").split(","));
+    state.ev.since = yr(p.get("since")); state.ev.q = p.get("q") || "";
+  }
+}
+
+/* ================= boot ================= */
+function selectTab(tab) {
+  setActiveTab(tab); resetFilters();
+  history.pushState(null, "", "#tab=" + tab);
+  refresh();
+}
+function gotoTimeline(q) {
+  setActiveTab("timeline"); resetFilters();
+  state.tl.q = q || "";
+  history.pushState(null, "", "#tab=timeline" + (q ? "&q=" + encodeURIComponent(q) : ""));
+  refresh();
+}
+document.querySelectorAll(".tab-btn").forEach(b =>
+  b.addEventListener("click", () => selectTab(b.dataset.tab)));
+window.addEventListener("popstate", () => { applyHash(); refresh(); });
+
+(async function init() {
+  try {
+    [state._ov, EVENTS, CLUSTERS] = await Promise.all([
+      fetch("overview.json").then(r => r.json()),
+      fetch("events.json").then(r => r.json()),
+      fetch("event_clusters.json").then(r => r.json()),
+    ]);
+  } catch (e) {
+    $("#loading").classList.add("hidden");
+    $("#error-banner").classList.remove("hidden");
+    $("#error-banner").textContent = "Failed to load data files (overview.json / events.json / event_clusters.json). Serve this folder over HTTP, not file://. (" + e + ")";
+    return;
+  }
+  $("#hdr-count").textContent = `${fmtN(EVENTS.length)} timeline events · ${fmtN(CLUSTERS.length)} clustered`;
+  applyHash();
+  refresh();
+})();
+</script>
+</body>
+</html>
