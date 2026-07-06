@@ -1,0 +1,44 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Street Scramble — print all sheets</title><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Lora:ital@0;1&display=swap" rel="stylesheet">
+<style>
+
+  body { font-family: 'Lora', Georgia, serif; color: #2a1a0e; background: #f0e6d3;
+         max-width: 1100px; margin: 40px auto; padding: 0 20px; line-height: 1.55; }
+  h1 { font-family: 'Playfair Display', Georgia, serif; }
+  a { color: #b23a2e; }
+  .sub { color: #8a6d4a; font-style: italic; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; margin-top: 24px; }
+  .tile { background: #faf4e8; border: 1px solid #c8b498; border-radius: 10px; padding: 10px;
+          box-shadow: 0 2px 12px rgba(42,26,14,0.12); }
+  .tile img { width: 100%; height: auto; display: block; border: 1px solid #e0d4bc; }
+  .tile .cap { margin-top: 6px; font-size: 0.9rem; display: flex; justify-content: space-between; }
+
+  .page { width: 100%; height: auto; display: block; margin-bottom: 24px;
+           background: white; border: 1px solid #c8b498; }
+  @media print {
+    body { background: white; margin: 0; max-width: none; padding: 0; }
+    .no-print { display: none; }
+    .page { border: none; margin: 0; page-break-after: always; width: 100%; }
+  }
+  @page { size: 17in 11in landscape; margin: 0; }
+</style></head>
+<body>
+<div class="no-print">
+<h1>Print all sheets</h1>
+<p class="sub">Set paper to tabloid (11&times;17) landscape, 100% scale, margins none.
+Overview first, then 12 map sheets.</p>
+</div>
+<img class="page" src="overview.svg" alt="Overview">
+<img class="page" src="sheet_A1.svg" alt="Sheet A1">
+<img class="page" src="sheet_A2.svg" alt="Sheet A2">
+<img class="page" src="sheet_A3.svg" alt="Sheet A3">
+<img class="page" src="sheet_B1.svg" alt="Sheet B1">
+<img class="page" src="sheet_B2.svg" alt="Sheet B2">
+<img class="page" src="sheet_B3.svg" alt="Sheet B3">
+<img class="page" src="sheet_C1.svg" alt="Sheet C1">
+<img class="page" src="sheet_C2.svg" alt="Sheet C2">
+<img class="page" src="sheet_C3.svg" alt="Sheet C3">
+<img class="page" src="sheet_D1.svg" alt="Sheet D1">
+<img class="page" src="sheet_D2.svg" alt="Sheet D2">
+<img class="page" src="sheet_D3.svg" alt="Sheet D3">
+</body></html>
