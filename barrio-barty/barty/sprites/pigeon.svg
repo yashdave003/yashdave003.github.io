@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Pigeon team token">
+  <!-- navy body -->
+  <g fill="#004988" stroke="#004988" stroke-width="1" stroke-linejoin="round">
+    <!-- tail wedge, up and back -->
+    <path d="M 80 56 A 46 46 0 0 1 114 44 L 92 78 Z"/>
+    <!-- body -->
+    <circle cx="64" cy="74" r="28"/>
+    <!-- neck connector -->
+    <path d="M 26 42 L 52 38 L 68 74 L 36 84 Z"/>
+    <!-- head -->
+    <circle cx="38" cy="40" r="15"/>
+  </g>
+  <!-- parchment folded wing, arc lens -->
+  <g fill="#f4ead8" stroke="#f4ead8" stroke-width="1" stroke-linejoin="round">
+    <path d="M 48 70 A 28 28 0 0 1 90 66 A 34 34 0 0 1 48 70 Z"/>
+  </g>
+  <!-- espresso beak -->
+  <path d="M 25 36 L 12 42 L 25 47 Z" fill="#2b2015" stroke="#2b2015" stroke-width="1" stroke-linejoin="round"/>
+  <!-- amber eye + espresso pupil -->
+  <circle cx="35" cy="36" r="4.6" fill="#EF9F27"/>
+  <circle cx="34" cy="36" r="2.2" fill="#2b2015"/>
+  <!-- espresso legs and feet -->
+  <g fill="#2b2015" stroke="#2b2015" stroke-width="1">
+    <rect x="52" y="98" width="5" height="13" rx="2"/>
+    <rect x="66" y="98" width="5" height="13" rx="2"/>
+    <rect x="46" y="109" width="14" height="3.5" rx="1.75"/>
+    <rect x="60" y="109" width="14" height="3.5" rx="1.75"/>
+  </g>
+</svg>

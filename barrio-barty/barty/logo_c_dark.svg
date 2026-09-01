@@ -1,0 +1,35 @@
+<svg viewBox="-44 -132 427 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Barrio BART-y wordmark with route line, dark-surface variant">
+  <g font-family="'Helvetica Neue',Helvetica,Arial,sans-serif" font-weight="bold" font-size="26" fill="#f4ead8" text-anchor="middle">
+    <text x="-35" y="-102">B</text>
+    <text x="47" y="-102">A</text>
+    <text x="129" y="-102">R</text>
+    <text x="210" y="-102">R</text>
+    <text x="292" y="-102">I</text>
+    <text x="374" y="-102">O</text>
+  </g>
+  <g fill="#f4ead8" stroke="#f4ead8" stroke-width="1" stroke-linejoin="round">
+    <rect x="-50" y="-90" width="23" height="140"/>
+    <path d="M -50 0 a 50 50 0 1 0 100 0 a 50 50 0 1 0 -100 0 M -27 0 a 27 27 0 1 0 54 0 a 27 27 0 1 0 -54 0" fill-rule="evenodd"/>
+  </g>
+  <g fill="#0099D8" stroke="#0099D8" stroke-width="1" stroke-linejoin="round">
+    <path d="M 46 0 a 50 50 0 1 0 100 0 a 50 50 0 1 0 -100 0 M 69 0 a 27 27 0 1 0 54 0 a 27 27 0 1 0 -54 0" fill-rule="evenodd"/>
+    <rect x="123" y="-50" width="23" height="100"/>
+  </g>
+  <g fill="#f4ead8" stroke="#f4ead8" stroke-width="1" stroke-linejoin="round">
+    <rect x="158" y="-50" width="23" height="100"/>
+    <path d="M 181 -50 A 40 40 0 0 1 221 -10 L 198 -10 A 17 17 0 0 0 181 -27 Z"/>
+    <rect x="244" y="-78" width="23" height="128"/>
+    <rect x="233" y="-50" width="46" height="23"/>
+  </g>
+  <g fill="#EF9F27" stroke="#EF9F27" stroke-width="1" stroke-linejoin="round">
+    <rect x="291" y="-50" width="23" height="50"/>
+    <path d="M 291 0 A 50 50 0 0 0 391 0 L 368 0 A 27 27 0 0 1 314 0 Z"/>
+    <rect x="368" y="-50" width="23" height="115"/>
+    <path d="M 391 65 A 32 32 0 0 1 359 97 L 359 74 A 9 9 0 0 0 368 65 Z"/>
+  </g>
+  <path d="M -44 124 L 90 124 L 140 104 L 250 104 L 300 124 L 383 124" stroke="#d40843" stroke-width="4" fill="none" stroke-linejoin="round"/>
+  <circle cx="15" cy="124" r="5.5" fill="#ffffff" stroke="#d40843" stroke-width="3"/>
+  <circle cx="175" cy="104" r="5.5" fill="#ffffff" stroke="#d40843" stroke-width="3"/>
+  <circle cx="340" cy="124" r="5.5" fill="#ffffff" stroke="#d40843" stroke-width="3"/>
+  <circle cx="215" cy="104" r="8.5" fill="#ffffff" stroke="#f4ead8" stroke-width="3.5"/>
+</svg>
