@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Claimable star">
+  <!-- chunky amber star: fat inner radius, corners rounded by the same-color stroke -->
+  <path d="M 60 16 L 72.3 45 L 103.7 47.8 L 80 68.5 L 87 99.2 L 60 83 L 33 99.2 L 40 68.5 L 16.3 47.8 L 47.7 45 Z"
+        fill="#EF9F27" stroke="#EF9F27" stroke-width="9" stroke-linejoin="round"/>
+  <!-- eyes -->
+  <circle cx="51" cy="56" r="4.2" fill="#2b2015"/>
+  <circle cx="69" cy="56" r="4.2" fill="#2b2015"/>
+</svg>

@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Raccoon team token">
+  <!-- ringed tail: thick teal arc with espresso dash stripes -->
+  <path d="M 86 102 A 32 32 0 0 0 110 66" fill="none" stroke="#549dbf" stroke-width="15" stroke-linecap="round"/>
+  <path d="M 86 102 A 32 32 0 0 0 110 66" fill="none" stroke="#2b2015" stroke-width="15" stroke-dasharray="7 10" stroke-dashoffset="-9"/>
+  <!-- teal body -->
+  <g fill="#549dbf" stroke="#549dbf" stroke-width="1" stroke-linejoin="round">
+    <circle cx="41" cy="21" r="9"/>
+    <circle cx="79" cy="21" r="9"/>
+    <circle cx="60" cy="84" r="29"/>
+    <circle cx="60" cy="41" r="24"/>
+  </g>
+  <!-- inner ears -->
+  <circle cx="41" cy="21" r="4" fill="#2b2015"/>
+  <circle cx="79" cy="21" r="4" fill="#2b2015"/>
+  <!-- espresso mask band: two circles + bridging rect -->
+  <g fill="#2b2015" stroke="#2b2015" stroke-width="1" stroke-linejoin="round">
+    <circle cx="46" cy="38" r="10.5"/>
+    <circle cx="74" cy="38" r="10.5"/>
+    <rect x="46" y="30" width="28" height="16"/>
+  </g>
+  <!-- eyes on the mask -->
+  <circle cx="46" cy="38" r="4.6" fill="#f4ead8"/>
+  <circle cx="74" cy="38" r="4.6" fill="#f4ead8"/>
+  <circle cx="47" cy="39" r="2.2" fill="#2b2015"/>
+  <circle cx="73" cy="39" r="2.2" fill="#2b2015"/>
+  <!-- muzzle + nose -->
+  <circle cx="60" cy="55" r="8.5" fill="#f4ead8" stroke="#f4ead8" stroke-width="1"/>
+  <circle cx="60" cy="52" r="3.4" fill="#2b2015"/>
+  <!-- little hands held together (schemer) -->
+  <circle cx="52" cy="76" r="5" fill="#2b2015"/>
+  <circle cx="68" cy="76" r="5" fill="#2b2015"/>
+</svg>

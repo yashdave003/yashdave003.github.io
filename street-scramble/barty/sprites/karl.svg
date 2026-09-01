@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Karl the Fog team token">
+  <!-- fog puff: overlapping circles on a flat rounded base -->
+  <g fill="#0099D8" stroke="#0099D8" stroke-width="1" stroke-linejoin="round">
+    <circle cx="32" cy="72" r="20"/>
+    <circle cx="60" cy="54" r="27"/>
+    <circle cx="89" cy="70" r="21"/>
+    <rect x="14" y="70" width="93" height="22" rx="11"/>
+  </g>
+  <!-- sleepy closed eyes: downward arcs -->
+  <g fill="none" stroke="#2b2015" stroke-width="4.6" stroke-linecap="round">
+    <path d="M 42 62 A 8.5 8.5 0 0 0 57 62"/>
+    <path d="M 67 62 A 8.5 8.5 0 0 0 82 62"/>
+  </g>
+  <!-- tiny content mouth -->
+  <path d="M 58 76 A 5 5 0 0 0 66 76" fill="none" stroke="#2b2015" stroke-width="3.4" stroke-linecap="round"/>
+</svg>

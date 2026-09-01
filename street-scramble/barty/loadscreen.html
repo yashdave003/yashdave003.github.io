@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Barrio BART-y — load screen</title>
+<style>
+  body { margin:0; font-family:Georgia,'Times New Roman',serif; }
+  .panel { padding:56px 24px; display:flex; flex-direction:column; align-items:center; gap:18px; }
+  .light { background:#f4ead8; --ink:#1a1a1a; color:#4a3423; }
+  .dark  { background:#221a12; --ink:#f4ead8; color:#e8dcc4; }
+  .panel svg { width:min(620px, 92vw); height:auto; }
+  .caption { font-size:13px; font-style:italic; opacity:.7; }
+  .ink { fill:var(--ink); }
+  .ring { stroke:var(--ink); }
+
+  /* 6s loop: hold bart-y, couple to bay, hold, uncouple, hold.
+     rt squashes into the seam behind the a; the y car rolls in with a
+     slight bump-and-settle, then rolls back out. */
+  .rt-squash {
+    animation: rtSquash 6s cubic-bezier(.65,0,.35,1) infinite;
+  }
+  @keyframes rtSquash {
+    0%, 20%      { transform: scaleX(1);  opacity:1; }
+    33%          { opacity:1; }
+    36.7%, 63.3% { transform: scaleX(0);  opacity:0; }
+    67%          { opacity:1; }
+    80%, 100%    { transform: scaleX(1);  opacity:1; }
+  }
+  .y-car {
+    animation: yCar 6s cubic-bezier(.65,0,.35,1) infinite;
+  }
+  @keyframes yCar {
+    0%, 21.7%    { transform: translateX(0); }
+    35%          { transform: translateX(-136px); }  /* bump */
+    38.3%, 61.7% { transform: translateX(-133px); }  /* settle, coupled */
+    76.7%        { transform: translateX(4px); }     /* slack on release */
+    80%, 100%    { transform: translateX(0); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .rt-squash, .y-car { animation: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="panel light">
+  <svg viewBox="-44 -132 427 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Barrio BART-y load animation">
+    <!-- spaced caps row (steady) -->
+    <g class="ink" font-family="'Helvetica Neue',Helvetica,Arial,sans-serif" font-weight="bold" font-size="26" text-anchor="middle">
+      <text x="-35" y="-102">B</text>
+      <text x="47" y="-102">A</text>
+      <text x="129" y="-102">R</text>
+      <text x="210" y="-102">R</text>
+      <text x="292" y="-102">I</text>
+      <text x="374" y="-102">O</text>
+    </g>
+
+    <!-- b (steady) -->
+    <g class="ink">
+      <rect x="-50" y="-90" width="23" height="140"/>
+      <path d="M -50 0 a 50 50 0 1 0 100 0 a 50 50 0 1 0 -100 0 M -27 0 a 27 27 0 1 0 54 0 a 27 27 0 1 0 -54 0" fill-rule="evenodd"/>
+    </g>
+    <!-- a (steady) -->
+    <g fill="#0099D8" stroke="#0099D8" stroke-width="1" stroke-linejoin="round">
+      <path d="M 46 0 a 50 50 0 1 0 100 0 a 50 50 0 1 0 -100 0 M 69 0 a 27 27 0 1 0 54 0 a 27 27 0 1 0 -54 0" fill-rule="evenodd"/>
+      <rect x="123" y="-50" width="23" height="100"/>
+    </g>
+
+    <!-- rt: squashes into the seam at x=152 (children pre-shifted so local origin = seam) -->
+    <g transform="translate(152 0)">
+      <g class="rt-squash ink">
+        <rect x="6" y="-50" width="23" height="100"/>
+        <path d="M 29 -50 A 40 40 0 0 1 69 -10 L 46 -10 A 17 17 0 0 0 29 -27 Z"/>
+        <rect x="92" y="-78" width="23" height="128"/>
+        <rect x="81" y="-50" width="46" height="23"/>
+      </g>
+    </g>
+
+    <!-- y car: rolls left to couple directly to the a -->
+    <g class="y-car" fill="#EF9F27" stroke="#EF9F27" stroke-width="1" stroke-linejoin="round">
+      <rect x="291" y="-50" width="23" height="50"/>
+      <path d="M 291 0 A 50 50 0 0 0 391 0 L 368 0 A 27 27 0 0 1 314 0 Z"/>
+      <rect x="368" y="-50" width="23" height="115"/>
+      <path d="M 391 65 A 32 32 0 0 1 359 97 L 359 74 A 9 9 0 0 0 368 65 Z"/>
+    </g>
+
+    <!-- route line (the ground stays) -->
+    <path d="M -44 124 L 90 124 L 140 104 L 250 104 L 300 124 L 383 124" stroke="#d40843" stroke-width="4" fill="none" stroke-linejoin="round"/>
+    <circle cx="15" cy="124" r="5.5" fill="#ffffff" stroke="#d40843" stroke-width="3"/>
+    <circle cx="175" cy="104" r="5.5" fill="#ffffff" stroke="#d40843" stroke-width="3"/>
+    <circle cx="340" cy="124" r="5.5" fill="#ffffff" stroke="#d40843" stroke-width="3"/>
+    <circle cx="215" cy="104" r="8.5" fill="#ffffff" class="ring" stroke-width="3.5"/>
+  </svg>
+  <div class="caption">bart-y &harr; bay &mdash; the rt cars uncouple while the line holds</div>
+</div>
+
+<div class="panel dark">
+  <svg viewBox="-44 -132 427 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Barrio BART-y load animation, dark">
+    <g class="ink" font-family="'Helvetica Neue',Helvetica,Arial,sans-serif" font-weight="bold" font-size="26" text-anchor="middle">
+      <text x="-35" y="-102">B</text>
+      <text x="47" y="-102">A</text>
+      <text x="129" y="-102">R</text>
+      <text x="210" y="-102">R</text>
+      <text x="292" y="-102">I</text>
+      <text x="374" y="-102">O</text>
+    </g>
+    <g class="ink">
+      <rect x="-50" y="-90" width="23" height="140"/>
+      <path d="M -50 0 a 50 50 0 1 0 100 0 a 50 50 0 1 0 -100 0 M -27 0 a 27 27 0 1 0 54 0 a 27 27 0 1 0 -54 0" fill-rule="evenodd"/>
+    </g>
+    <g fill="#0099D8" stroke="#0099D8" stroke-width="1" stroke-linejoin="round">
+      <path d="M 46 0 a 50 50 0 1 0 100 0 a 50 50 0 1 0 -100 0 M 69 0 a 27 27 0 1 0 54 0 a 27 27 0 1 0 -54 0" fill-rule="evenodd"/>
+      <rect x="123" y="-50" width="23" height="100"/>
+    </g>
+    <g transform="translate(152 0)">
+      <g class="rt-squash ink">
+        <rect x="6" y="-50" width="23" height="100"/>
+        <path d="M 29 -50 A 40 40 0 0 1 69 -10 L 46 -10 A 17 17 0 0 0 29 -27 Z"/>
+        <rect x="92" y="-78" width="23" height="128"/>
+        <rect x="81" y="-50" width="46" height="23"/>
+      </g>
+    </g>
+    <g class="y-car" fill="#EF9F27" stroke="#EF9F27" stroke-width="1" stroke-linejoin="round">
+      <rect x="291" y="-50" width="23" height="50"/>
+      <path d="M 291 0 A 50 50 0 0 0 391 0 L 368 0 A 27 27 0 0 1 314 0 Z"/>
+      <rect x="368" y="-50" width="23" height="115"/>
+      <path d="M 391 65 A 32 32 0 0 1 359 97 L 359 74 A 9 9 0 0 0 368 65 Z"/>
+    </g>
+    <path d="M -44 124 L 90 124 L 140 104 L 250 104 L 300 124 L 383 124" stroke="#d40843" stroke-width="4" fill="none" stroke-linejoin="round"/>
+    <circle cx="15" cy="124" r="5.5" fill="#ffffff" stroke="#d40843" stroke-width="3"/>
+    <circle cx="175" cy="104" r="5.5" fill="#ffffff" stroke="#d40843" stroke-width="3"/>
+    <circle cx="340" cy="124" r="5.5" fill="#ffffff" stroke="#d40843" stroke-width="3"/>
+    <circle cx="215" cy="104" r="8.5" fill="#ffffff" class="ring" stroke-width="3.5"/>
+  </svg>
+  <div class="caption">dark-surface variant</div>
+</div>
+
+</body>
+</html>

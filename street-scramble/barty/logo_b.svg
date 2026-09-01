@@ -1,0 +1,29 @@
+<svg viewBox="-44 -132 294 232" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Barrio BART-y minimal mark">
+  <!-- spaced caps row -->
+  <g font-family="'Helvetica Neue',Helvetica,Arial,sans-serif" font-weight="bold" font-size="24" fill="#1a1a1a" text-anchor="middle">
+    <text x="-35.5" y="-102">B</text>
+    <text x="20" y="-102">A</text>
+    <text x="75" y="-102">R</text>
+    <text x="131" y="-102">R</text>
+    <text x="186" y="-102">I</text>
+    <text x="241.5" y="-102">O</text>
+  </g>
+
+  <!-- b: solid black, ascender stem cropped at the left frame edge -->
+  <g fill="#1a1a1a" stroke="#1a1a1a" stroke-width="1" stroke-linejoin="round">
+    <rect x="-50" y="-90" width="23" height="140"/>
+    <path d="M -50 0 a 50 50 0 1 0 100 0 a 50 50 0 1 0 -100 0 M -27 0 a 27 27 0 1 0 54 0 a 27 27 0 1 0 -54 0" fill-rule="evenodd"/>
+  </g>
+  <!-- a: BART blue, slightly overlapping the b -->
+  <g fill="#0099D8" stroke="#0099D8" stroke-width="1" stroke-linejoin="round">
+    <path d="M 46 0 a 50 50 0 1 0 100 0 a 50 50 0 1 0 -100 0 M 69 0 a 27 27 0 1 0 54 0 a 27 27 0 1 0 -54 0" fill-rule="evenodd"/>
+    <rect x="123" y="-50" width="23" height="100"/>
+  </g>
+  <!-- y: amber, bowl like the a plus a right stem descending below the baseline; cropped at the right frame edge -->
+  <g fill="#EF9F27" stroke="#EF9F27" stroke-width="1" stroke-linejoin="round">
+    <rect x="158" y="-50" width="23" height="50"/>
+    <path d="M 158 0 A 50 50 0 0 0 258 0 L 235 0 A 27 27 0 0 1 181 0 Z"/>
+    <rect x="235" y="-50" width="23" height="115"/>
+    <path d="M 258 65 A 32 32 0 0 1 226 97 L 226 74 A 9 9 0 0 0 235 65 Z"/>
+  </g>
+</svg>
