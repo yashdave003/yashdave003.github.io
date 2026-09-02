@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Great horned owl team token">
+  <!-- espresso branch -->
+  <g fill="#2b2015" stroke="#2b2015" stroke-width="1">
+    <rect x="14" y="106" width="92" height="4" rx="2"/>
+  </g>
+  <!-- navy body, head and ear tufts -->
+  <g fill="#004988" stroke="#004988" stroke-width="1" stroke-linejoin="round">
+    <circle cx="60" cy="78" r="28"/>
+    <circle cx="60" cy="42" r="24"/>
+    <path d="M 42 26 L 34 4 L 54 20 Z"/>
+    <path d="M 78 26 L 86 4 L 66 20 Z"/>
+  </g>
+  <!-- parchment facial discs -->
+  <g fill="#f4ead8" stroke="#f4ead8" stroke-width="1">
+    <circle cx="48" cy="44" r="12"/>
+    <circle cx="72" cy="44" r="12"/>
+  </g>
+  <!-- amber eyes, big -->
+  <g fill="#EF9F27"><circle cx="48" cy="44" r="7"/><circle cx="72" cy="44" r="7"/></g>
+  <g fill="#2b2015"><circle cx="49" cy="45" r="3.4"/><circle cx="71" cy="45" r="3.4"/></g>
+  <!-- beak -->
+  <path d="M 55 52 L 65 52 L 60 61 Z" fill="#2b2015" stroke="#2b2015" stroke-width="1" stroke-linejoin="round"/>
+  <!-- barred chest -->
+  <g fill="none" stroke="#f4ead8" stroke-width="2.2" stroke-linecap="round" opacity=".85">
+    <path d="M 48 72 L 54 72 M 62 72 L 70 72 M 44 82 L 52 82 M 58 82 L 66 82 M 70 82 L 76 82 M 50 92 L 58 92 M 64 92 L 72 92"/>
+  </g>
+  <!-- amber feet on the branch -->
+  <g fill="#EF9F27" stroke="#EF9F27" stroke-width="1">
+    <rect x="44" y="102" width="12" height="5" rx="2.5"/><rect x="64" y="102" width="12" height="5" rx="2.5"/>
+  </g>
+</svg>

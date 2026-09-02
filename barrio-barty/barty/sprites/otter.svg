@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Sea otter team token, floating on its back">
+  <!-- espresso body afloat, head up, tail trailing -->
+  <g fill="#2b2015" stroke="#2b2015" stroke-width="1" stroke-linejoin="round">
+    <rect x="18" y="62" width="88" height="34" rx="17"/>
+    <rect x="92" y="70" width="26" height="12" rx="6" transform="rotate(-25 105 76)"/>
+    <circle cx="32" cy="50" r="19"/>
+    <circle cx="20" cy="36" r="6"/>
+    <circle cx="44" cy="34" r="6"/>
+    <!-- paws up on the chest -->
+    <circle cx="54" cy="60" r="7"/>
+    <circle cx="72" cy="60" r="7"/>
+    <!-- hind flippers -->
+    <path d="M 96 88 L 112 100 L 100 102 Z"/>
+  </g>
+  <!-- pale face and chest -->
+  <g fill="#f4ead8" stroke="#f4ead8" stroke-width="1">
+    <circle cx="30" cy="55" r="11"/>
+    <path d="M 44 70 A 20 12 0 0 1 84 70 A 20 12 0 0 1 44 70 Z"/>
+  </g>
+  <!-- the shell it is working on -->
+  <circle cx="63" cy="52" r="9" fill="#EF9F27" stroke="#EF9F27" stroke-width="1"/>
+  <path d="M 63 44 L 63 60 M 56 47 L 70 57 M 56 57 L 70 47" fill="none" stroke="#2b2015" stroke-width="1.4" stroke-linecap="round"/>
+  <!-- nose, eyes, whiskers -->
+  <circle cx="24" cy="56" r="3.2" fill="#2b2015"/>
+  <g fill="#2b2015"><circle cx="27" cy="47" r="2.6"/><circle cx="37" cy="47" r="2.6"/></g>
+  <g fill="none" stroke="#2b2015" stroke-width="1.4" stroke-linecap="round">
+    <path d="M 20 58 L 8 54 M 20 61 L 7 62 M 21 64 L 10 69"/>
+  </g>
+</svg>

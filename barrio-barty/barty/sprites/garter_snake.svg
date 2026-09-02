@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="San Francisco garter snake team token">
+  <!-- one S of body: teal, with the red dorsal stripe and its black edges laid over it -->
+  <path d="M 10 98 C 46 98 34 68 60 66 C 86 64 78 42 100 42" fill="none" stroke="#549dbf" stroke-width="17" stroke-linecap="round"/>
+  <path d="M 10 98 C 46 98 34 68 60 66 C 86 64 78 42 100 42" fill="none" stroke="#2b2015" stroke-width="8" stroke-linecap="round"/>
+  <path d="M 10 98 C 46 98 34 68 60 66 C 86 64 78 42 100 42" fill="none" stroke="#d40843" stroke-width="4.5" stroke-linecap="round"/>
+  <!-- head -->
+  <circle cx="102" cy="42" r="12" fill="#549dbf" stroke="#549dbf" stroke-width="1"/>
+  <circle cx="104" cy="38" r="3" fill="#2b2015"/>
+  <!-- forked tongue -->
+  <path d="M 113 44 L 119 46 M 119 46 L 118 42 M 119 46 L 116 49" fill="none" stroke="#d40843" stroke-width="1.8" stroke-linecap="round"/>
+  <!-- tail tip -->
+  <circle cx="10" cy="98" r="5" fill="#549dbf"/>
+</svg>
