@@ -1,0 +1,9 @@
+Evaluarium bundled run data
+
+Generated:    2026-05-06 (approx; AIMS NeurIPS D&B 2026 submission window)
+Sim commit:   fb893fbf01ad9b15c2f6a27b166621c1195b3d9f
+              (head of aims-foundations/evaluation-ecosystem-simulation
+              at the time of submission; commit dated 2026-05-04 23:53 PT,
+              "Update README.md")
+Pipeline:     scripts/animation/generate_explorer.py
+Counts:       367 frame files, ~65 MB

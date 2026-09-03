@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>AI Evaluation Ecosystem Explorer</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<script src="js/loader.js?v=1"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: "Inter", system-ui, sans-serif; background: #f0e6d3; color: #2a1a0e; min-height: 100vh; }
+
+/* ---- Header ---- */
+#hdr { position: sticky; top: 0; z-index: 20; background: #e8d9c2;
+  border-bottom: 1px solid #c8b498; padding: 0 24px; height: 52px;
+  display: flex; align-items: center; gap: 16px; }
+#hdr-title { font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+#hdr-count { font-size: 11px; color: #7a6045; border-left: 1px solid #c8b498; padding-left: 14px; }
+/* shared site nav; keep in sync with index.html / simulation.html */
+#hdr nav { display: flex; gap: 4px; margin-left: auto; }
+#hdr nav a { font-size: 11px; color: #5a4030; text-decoration: none; font-weight: 600;
+  letter-spacing: .04em; padding: 5px 11px; border-radius: 4px; white-space: nowrap; }
+#hdr nav a:hover { background: #ded0b8; color: #2a1a0e; }
+#hdr nav a.here { background: #3d5a8a; color: #f0e6d3; }
+#compare-toggle { margin-left: 8px; background: #3d5a8a; border: none; border-radius: 4px;
+  color: #f0e6d3; padding: 5px 14px; font-size: 10px; font-weight: 700; letter-spacing: .06em;
+  text-transform: uppercase; cursor: pointer; font-family: inherit; white-space: nowrap; }
+#compare-toggle:hover { background: #4d6a9a; }
+#compare-toggle.active { background: #2a1a0e; }
+
+/* ---- Filter bar ---- */
+#filter-bar { position: sticky; top: 52px; z-index: 19; background: #ede0ca;
+  border-bottom: 1px solid #c8b498; padding: 9px 24px;
+  display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+.fgroup { display: flex; align-items: center; gap: 7px; }
+.flabel { font-size: 9px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  color: #7a6045; white-space: nowrap; }
+.fpill, .fbtn { background: #e0d0b8; border: 1px solid #c8b498; border-radius: 12px;
+  padding: 3px 11px; font-size: 10px; color: #5a4030; cursor: pointer;
+  font-family: inherit; white-space: nowrap; line-height: 1.6; }
+.fpill:hover, .fbtn:hover { background: #d0c0a8; color: #2a1a0e; }
+.fpill.active, .fbtn.active { background: #3d5a8a; border-color: #2d4a7a; color: #f0e6d3; font-weight: 600; }
+#model-sel, #cond-search { background: #e8d9c2; border: 1px solid #c8b498; border-radius: 4px;
+  padding: 4px 8px; font-size: 10px; color: #2a1a0e; font-family: inherit; }
+:is(a, button, select, input):focus-visible { outline: 2px solid #3d5a8a; outline-offset: 2px; }
+#cond-search { width: 180px; }
+#cond-search:focus { border-color: #3d5a8a; }
+.fgroup-search { margin-left: auto; }
+
+/* ---- Orientation strip ---- */
+#orient-strip { padding: 10px 24px 0; font-size: 10px; color: #7a6045; line-height: 1.6;
+  max-width: 900px; }
+
+/* ---- Question strip (lighter than the grid cards: an entry point, not data) ---- */
+#question-strip { padding: 14px 24px 0; }
+#question-strip .qs-label { font-size: 9px; font-weight: 700; letter-spacing: .1em;
+  text-transform: uppercase; color: #7a6045; margin-bottom: 7px; }
+.qs-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; }
+.qs-card { background: #ede0ca; border: 1px solid #d0c0a8; border-radius: 7px; padding: 11px 14px; }
+.qs-q { font-size: 11.5px; font-weight: 700; line-height: 1.4; margin-bottom: 4px; }
+.qs-a { font-size: 10px; color: #5a4030; line-height: 1.5; margin-bottom: 7px; }
+.qs-link { font-size: 10px; font-weight: 700; color: #3d5a8a; text-decoration: none; }
+.qs-link:hover { text-decoration: underline; }
+
+/* ---- Showing count ---- */
+#showing { padding: 10px 24px 0; font-size: 10px; color: #7a6045; }
+
+/* ---- Card grid ---- */
+#grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 14px; padding: 14px 24px 32px; align-items: start; }
+
+/* ---- Cards ---- */
+.card { background: #e8d9c2; border: 1px solid #c8b498; border-radius: 7px;
+  border-top: 4px solid #c8b498; display: flex; flex-direction: column;
+  overflow: hidden; transition: box-shadow .15s; position: relative; }
+.card:hover { box-shadow: 0 4px 20px rgba(42,26,14,.15); }
+
+.card-top-row { display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 20px 6px 24px; }
+.card-body { padding: 0 20px 0 24px; }
+.card-header { padding: 0 0 10px 0; cursor: pointer; text-decoration: none; color: inherit; display: block; }
+.card-header:hover .card-condition { opacity: .85; }
+.card-bucket { font-size: 8.5px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: #7a6045; white-space: nowrap; }
+.card-badges { display: flex; gap: 4px; }
+.badge { font-size: 8px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
+  padding: 2px 7px; border-radius: 10px; }
+.badge-llm       { background: #d4e2f0; color: #1a3a6a; border: 1px solid #8aaad4; }
+.badge-heuristic { background: #e0d0b8; color: #7a6045; border: 1px solid #c8b498; }
+
+.card-mid { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.card-left { flex: 1; min-width: 0; }
+.card-condition { font-size: 16px; font-weight: 700; line-height: 1.2; margin-bottom: 4px; }
+.card-desc { font-size: 9px; color: #7a6045; line-height: 1.4; margin-bottom: 6px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.card-pie { flex-shrink: 0; display: block; }
+.card-stats { display: flex; flex-direction: column; gap: 3px; }
+.card-leader { font-size: 11.5px; font-weight: 600; }
+.card-leader span { font-weight: 400; color: #5a4030; }
+.card-meta { font-size: 9.5px; color: #7a6045; }
+.card-open-hint { font-size: 9px; color: #7a6045; margin-top: 5px; }
+.card-header:hover .card-open-hint { color: #3d5a8a; }
+
+/* ---- Seed chips area ---- */
+.card-seeds { border-top: 1px solid #d0c0a8; padding: 10px 0 11px 0;
+  display: flex; flex-direction: column; gap: 7px; }
+.seed-group { display: flex; flex-direction: column; gap: 4px; }
+.seed-group-lbl { font-size: 8.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  color: #7a6045; white-space: nowrap; }
+.seed-chips { display: flex; gap: 4px; flex-wrap: wrap; }
+.seed-chip { display: inline-block; padding: 2px 8px; border-radius: 10px;
+  font-size: 9px; font-weight: 600; background: #d8c9b0; border: 1px solid #c0ad94;
+  color: #5a4030; cursor: pointer; text-decoration: none; white-space: nowrap;
+  transition: background .12s; }
+.seed-chip:hover { background: #c8b89a; color: #2a1a0e; }
+.seed-chip.chip-rep { font-weight: 700; }
+.seed-more { display: inline-block; padding: 2px 8px; border-radius: 10px;
+  font-size: 9px; background: none; border: 1px dashed #a08868; color: #7a6045;
+  cursor: pointer; font-family: inherit; }
+.seed-more:hover { color: #5a4030; border-color: #5a4030; }
+.seed-hidden { display: none; }
+.seed-group.expanded .seed-hidden { display: inline-block; }
+.seed-group.expanded .seed-more { display: none; }
+
+/* ---- Compare bar ---- */
+#compare-bar { position: fixed; bottom: 0; left: 0; right: 0; z-index: 30;
+  background: #2a1a0e; color: #f0e6d3; padding: 12px 24px;
+  display: flex; align-items: center; gap: 14px;
+  box-shadow: 0 -4px 18px rgba(42,26,14,.3); }
+#compare-bar.hidden { display: none !important; }
+#compare-count { font-size: 11px; font-weight: 600; flex: 1; }
+#compare-clear { background: none; border: 1px solid rgba(240,230,211,.3); border-radius: 4px;
+  color: rgba(240,230,211,.6); padding: 4px 12px; font-size: 10px; cursor: pointer; font-family: inherit; }
+#compare-clear:hover { border-color: rgba(240,230,211,.7); color: #f0e6d3; }
+#compare-go { background: #3d5a8a; border: none; border-radius: 4px; color: #f0e6d3;
+  padding: 7px 20px; font-size: 10px; font-weight: 700; letter-spacing: .07em;
+  text-transform: uppercase; cursor: pointer; font-family: inherit; }
+#compare-go:hover { background: #4d6a9a; }
+#compare-go[aria-disabled="true"] { opacity: .45; cursor: default; }
+#compare-go[aria-disabled="true"]:hover { background: #3d5a8a; }
+.card.selected { outline: 2px solid #3d5a8a; outline-offset: 2px; }
+.card-check { position: absolute; top: 10px; right: 10px; width: 16px; height: 16px;
+  border-radius: 3px; border: 1.5px solid #c8b498; background: #f0e6d3;
+  display: none; align-items: center; justify-content: center; cursor: pointer;
+  font-family: inherit; padding: 0; }
+.compare-mode .card-check { display: flex; }
+.compare-mode .card.selected .card-check { background: #3d5a8a; border-color: #3d5a8a; }
+.compare-mode .card.selected .card-check::after { content:"\2713"; color:#f0e6d3; font-size:10px; }
+.badge.badge-link { cursor: pointer; text-decoration: none; }
+.badge.badge-link:hover { opacity: 0.8; filter: brightness(1.1); }
+
+/* ---- Empty / loading ---- */
+#empty, #loading { padding: 48px 24px; text-align: center; font-size: 12px; color: #7a6045; }
+.hidden { display: none !important; }
+
+@media (max-width: 720px) {
+  #hdr { position: static; height: auto; min-height: 52px; flex-wrap: wrap;
+    padding: 8px 16px; row-gap: 6px; }
+  #filter-bar { top: 0; }
+  .fpill, .fbtn, .seed-chip, .seed-more { min-height: 24px; padding-top: 5px; padding-bottom: 5px; }
+}
+#error-banner { margin: 20px 24px; padding: 14px 18px; background: #f0e0c8;
+  border: 1px solid #c46a3c; border-radius: 6px; font-size: 11px; color: #6a2a0a; line-height: 1.7; }
+</style>
+</head>
+<body>
+
+<div id="hdr">
+  <a id="hdr-title" href="index.html" style="text-decoration:none;color:#2a1a0e">The AI Evaluation Ecosystem</a>
+  <span id="hdr-count"></span>
+  <nav>
+    <a href="index.html">Ecosystem</a>
+    <a href="simulation.html">Simulation</a>
+    <a href="explorer.html" class="here">Explorer</a>
+  </nav>
+  <button id="compare-toggle">Compare</button>
+</div>
+
+<div id="filter-bar">
+  <div class="fgroup">
+    <span class="flabel">Bucket</span>
+    <div id="bucket-pills"></div>
+  </div>
+  <div class="fgroup">
+    <span class="flabel">Mode</span>
+    <div id="mode-btns">
+      <button class="fbtn active" data-mode="all">All</button>
+      <button class="fbtn" data-mode="llm">LLM</button>
+      <button class="fbtn" data-mode="heuristic">Heuristic</button>
+    </div>
+  </div>
+  <div class="fgroup">
+    <label class="flabel" for="model-sel">Model</label>
+    <select id="model-sel"><option value="all">All models</option></select>
+  </div>
+  <div class="fgroup fgroup-search">
+    <input id="cond-search" type="text" placeholder="Search condition..." aria-label="Search conditions">
+  </div>
+</div>
+
+<div id="orient-strip">Each card is one experimental condition from the paper. A condition fixes
+the rules of the world (which benchmarks are private, which actors exist); each seed chip is one
+40-round run of that world with different random draws. LLM runs use language-model actors;
+heuristic runs follow fixed decision rules.</div>
+
+<div id="question-strip">
+  <div class="qs-label">Start with a question</div>
+  <div class="qs-cards">
+    <div class="qs-card">
+      <div class="qs-q">Do private benchmark holdouts close the gap between scores and user experience?</div>
+      <div class="qs-a">No. They redistribute it across consumer groups.</div>
+      <a class="qs-link" href="compare.html?mode=across&amp;conditions=public_only%7Cbaseline%7Cprivate_only&amp;model=__heuristic__&amp;agg=1">See the comparison &rarr;</a>
+    </div>
+    <div class="qs-card">
+      <div class="qs-q">What changes when the evaluator runs as a company?</div>
+      <div class="qs-a">The condition is implemented and browsable (the evaluator charges fees and sells early access); no finding is claimed from it yet.</div>
+      <a class="qs-link" href="explorer.html?bucket=core_evaluator_capture">Browse the runs &rarr;</a>
+    </div>
+    <div class="qs-card">
+      <div class="qs-q">Can the simulation absorb a real-world shock?</div>
+      <div class="qs-a">An external low-cost-entrant shock is replayed against the simulated market as a validation exercise.</div>
+      <a class="qs-link" href="viewer.html?run=exogenous_validation%2Fllm%2Fclaude-sonnet-4-6%2Fev1_deepseek_shock%2Fseed_42">Watch a run &rarr;</a>
+    </div>
+  </div>
+</div>
+
+<div id="compare-bar" class="hidden">
+  <span id="compare-count">0 conditions selected</span>
+  <button id="compare-clear">Clear</button>
+  <button id="compare-go">Compare &rarr;</button>
+</div>
+
+<div id="showing"></div>
+<div id="loading">Loading runs&hellip;</div>
+<div id="error-banner" class="hidden"></div>
+<div id="grid"></div>
+<div id="empty" class="hidden">No runs match the current filters.</div>
+
+<script>
+/* ---- Constants ---- */
+const BUCKET_META = {
+  core_privacy:           { label: "Privacy Ladder"       },
+  structural_ablations:   { label: "Structural Ablations" },
+  core_evaluator_capture: { label: "Evaluator Capture"    },
+  exogenous_validation:   { label: "Exogenous Validation" },
+};
+
+const CONDITION_COLORS = {
+  baseline:                              "#3d5a8a",
+  public_only:                           "#4a7a3a",
+  private_only:                          "#7a3a4a",
+  private_dominant:                      "#8a5a2a",
+  iid_holdout:                           "#5a3a8a",
+  no_incidents:                          "#3a7a6a",
+  no_funders:                            "#7a6a2a",
+  no_regulator:                          "#8a3a2a",
+  no_media:                              "#4a5a6a",
+  no_opensource:                         "#6a5a3a",
+  homogeneous_consumers:                 "#4a6a3a",
+  initial_uniform_capability:            "#6a3a7a",
+  evaluator_capture:                     "#8a4a2a",
+  ev1_deepseek_shock:                    "#2a7a5a",
+  s5_aligned_private_only:              "#7a3a5a",
+  s5_aligned_public_only:               "#3a7a4a",
+  s8_agentic_private_only:              "#5a3a6a",
+  s8_agentic_public_only:               "#3a5a6a",
+  public_only__initial_uniform_capability: "#5a5a8a",
+  private_only__initial_uniform_capability: "#8a5a8a",
+};
+
+/* One-sentence description per condition (tooltip + card caption) */
+const CONDITION_META = {
+  baseline: "The calibrated mix matching the current ecosystem: mostly public benchmarks, a few partial and private.",
+  public_only: "All benchmarks fully public: providers see exactly what is measured.",
+  partial_only: "Benchmarks hold back 30 percent of their items, with hidden weights close to the public ones.",
+  private_only: "Fully private benchmarks: hidden items, hidden weights roughly twice as far from public, scores published every 3 rounds.",
+  private_dominant: "The benchmark mix is tilted toward private benchmarks, with only a few public ones remaining.",
+  iid_holdout: "Ablation: items are hidden but hidden weights equal the public ones, isolating the reporting mechanism.",
+  evaluator_capture: "The evaluator runs as a company: charges fees, sells early access, and can be captured by provider revenue.",
+  no_incidents: "Structural ablation: removes safety incidents from the world.",
+  no_funders: "Structural ablation: removes funders from the world.",
+  no_regulator: "Structural ablation: removes the regulator from the world.",
+  no_media: "Structural ablation: removes the media actor from the world.",
+  no_opensource: "Structural ablation: removes the open-source provider from the world.",
+  homogeneous_consumers: "Structural ablation: all consumers share the same needs instead of distinct market segments.",
+  initial_uniform_capability: "Every provider starts with identical capabilities.",
+  public_only__initial_uniform_capability: "Combined condition: fully public benchmarks and every provider starts with identical capabilities.",
+  private_only__initial_uniform_capability: "Combined condition: fully private benchmarks and every provider starts with identical capabilities.",
+  ev1_deepseek_shock: "Replays an external shock (a low-cost entrant) against the simulated market.",
+  s5_aligned_public_only: "Robustness check: a benchmark schedule whose weights start aligned with population needs, run at the fully public rung.",
+  s5_aligned_private_only: "Robustness check: a benchmark schedule whose weights start aligned with population needs, run at the fully private rung.",
+  s8_agentic_public_only: "Robustness check: an agentic-revolution benchmark schedule (tool-use benchmark from round 0, web navigation and issue resolution arriving late) run at the fully public rung.",
+  s8_agentic_private_only: "Robustness check: an agentic-revolution benchmark schedule (tool-use benchmark from round 0, web navigation and issue resolution arriving late) run at the fully private rung.",
+};
+
+const PROVIDER_COLORS = {
+  "Orion Labs":      "#3d5a8a",
+  "Apex AI":         "#3d7a5a",
+  "Genesis Systems": "#8a5a7a",
+  "Mirage AI":       "#c46a3c",
+  "OpenCore":        "#8a3a3a",
+  "Spark AI":        "#3a7a7a",
+};
+const FALLBACK_COLORS = ["#3d5a8a","#3d7a5a","#8a5a7a","#c46a3c","#8a3a3a","#3a7a7a"];
+
+const MODEL_LABELS = {
+  "claude-sonnet-4-6":   "Sonnet 4.6",
+  "claude-opus-4-6":     "Opus 4.6",
+  "gpt-5.5-2026-04-23": "GPT-5.5",
+};
+const MAX_CHIPS_PER_GROUP = 4;
+
+/* ---- Helpers ---- */
+function condColor(c)   { return CONDITION_COLORS[c] || "#8a8a8a"; }
+function bucketLabel(b) { return (BUCKET_META[b] || { label: b }).label; }
+function condDesc(c, bucket) {
+  return CONDITION_META[c] || ("One condition from the " + bucketLabel(bucket) + " experiments.");
+}
+function modelLabel(m)  { return m ? (MODEL_LABELS[m] || m) : "Heuristic"; }
+function seedNum(s)     { return s.replace("seed_", "#"); }
+function fmtCond(c)     { return c.replace(/__/g, " · ").replace(/_/g, " "); }
+function provColor(p, i){ return PROVIDER_COLORS[p] || FALLBACK_COLORS[i % FALLBACK_COLORS.length]; }
+
+function topProvider(shares) {
+  const top = Object.entries(shares || {}).sort((a,b) => b[1]-a[1])[0];
+  return top ? { name: top[0], pct: (top[1]*100).toFixed(1) } : null;
+}
+
+/* ---- Pie chart ---- */
+function pieChart(shares, providers, size=32) {
+  if (!shares || !providers || !providers.length) return "";
+  const total = Object.values(shares).reduce((s,v) => s+v, 0);
+  if (total === 0) return "";
+  const r = size/2, ir = r*0.38;
+  let angle = -Math.PI/2, paths = "";
+  providers.forEach((p, i) => {
+    const share = (shares[p] || 0) / total;
+    if (share < 0.004) return;
+    const sweep = share * Math.PI * 2;
+    const end = angle + sweep;
+    const x1 = r + r*Math.cos(angle),  y1 = r + r*Math.sin(angle);
+    const x2 = r + r*Math.cos(end),    y2 = r + r*Math.sin(end);
+    const ix1= r + ir*Math.cos(angle), iy1= r + ir*Math.sin(angle);
+    const ix2= r + ir*Math.cos(end),   iy2= r + ir*Math.sin(end);
+    const la = sweep > Math.PI ? 1 : 0;
+    const col = provColor(p, i);
+    paths += `<path d="M${x1.toFixed(2)},${y1.toFixed(2)} A${r},${r} 0 ${la},1 ${x2.toFixed(2)},${y2.toFixed(2)} L${ix2.toFixed(2)},${iy2.toFixed(2)} A${ir},${ir} 0 ${la},0 ${ix1.toFixed(2)},${iy1.toFixed(2)} Z" fill="${col}" stroke="#e8d9c2" stroke-width="0.8"/>`;
+    angle = end;
+  });
+  return `<svg class="card-pie" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">${paths}</svg>`;
+}
+
+/* ---- Group runs by condition ---- */
+function groupByCondition(runs) {
+  const map = {};
+  runs.forEach(r => {
+    if (!map[r.condition]) map[r.condition] = [];
+    map[r.condition].push(r);
+  });
+  return map;
+}
+
+function repRun(runs) {
+  return (
+    runs.find(r => r.mode==="llm" && r.model==="claude-sonnet-4-6" && r.seed==="seed_42") ||
+    runs.find(r => r.mode==="llm" && r.seed==="seed_42") ||
+    runs.find(r => r.mode==="llm") ||
+    runs[0]
+  );
+}
+
+/* ---- Render a condition card ---- */
+function cardHTML(cond, runs, activeMode, activeModel) {
+  const rep   = repRun(runs);
+  const color = condColor(cond);
+  const bkt   = bucketLabel(rep.bucket);
+  const leader= topProvider(rep.final_shares);
+
+  const modelGroups2 = {};
+  runs.forEach(r => {
+    const key = r.model || "__heuristic__";
+    if (!modelGroups2[key]) modelGroups2[key] = 0;
+    modelGroups2[key]++;
+  });
+  let badges = "";
+  Object.entries(modelGroups2).forEach(([key, count]) => {
+    if (key === "__heuristic__") return;
+    const href = `compare.html?mode=variance&condition=${encodeURIComponent(cond)}&model=${encodeURIComponent(key)}`;
+    badges += `<a class="badge badge-llm badge-link" href="${href}" title="View variance across seeds"
+      onclick="event.stopPropagation()">${modelLabel(key)} &times;${count}</a>`;
+  });
+
+  let chipRuns = runs;
+  if (activeMode === "llm")       chipRuns = runs.filter(r => r.mode==="llm");
+  if (activeMode === "heuristic") chipRuns = runs.filter(r => r.mode==="heuristic");
+  if (activeModel !== "all" && activeModel !== "__none__")
+    chipRuns = chipRuns.filter(r => r.model===activeModel);
+  if (activeModel === "__none__") chipRuns = chipRuns.filter(r => !r.model);
+
+  const modelGroups = {};
+  chipRuns.forEach(r => {
+    const key = r.model || "__heuristic__";
+    if (!modelGroups[key]) modelGroups[key] = [];
+    modelGroups[key].push(r);
+  });
+
+  const modelOrder = Object.keys(modelGroups).sort((a,b) => {
+    if (a==="__heuristic__") return 1;
+    if (b==="__heuristic__") return -1;
+    return a.localeCompare(b);
+  });
+
+  let seedsHTML = "";
+  modelOrder.forEach(key => {
+    const grpRuns = modelGroups[key].sort((a,b) => a.seed.localeCompare(b.seed));
+    const label   = key==="__heuristic__" ? "Heuristic" : modelLabel(key);
+    const maxShow = MAX_CHIPS_PER_GROUP;
+    const overflow= grpRuns.length - maxShow;
+
+    let chips = "";
+    grpRuns.forEach((r, i) => {
+      const isRep   = r.path === rep.path;
+      const hidden  = i >= maxShow ? " seed-hidden" : "";
+      const repCls  = isRep ? " chip-rep" : "";
+      const repStyle= isRep ? ` style="border-color:${color};color:${color}"` : "";
+      chips += `<a class="seed-chip${repCls}${hidden}" href="viewer.html?run=${encodeURIComponent(r.path)}"${repStyle}>${seedNum(r.seed)}</a>`;
+    });
+    if (overflow > 0)
+      chips += `<button class="seed-more" onclick="expandSeeds(this)">+${overflow} more</button>`;
+
+    seedsHTML += `<div class="seed-group">
+      <span class="seed-group-lbl">${label}</span>
+      <div class="seed-chips">${chips}</div>
+    </div>`;
+  });
+
+  const pie = pieChart(rep.final_shares, rep.providers);
+
+  const desc  = condDesc(cond, rep.bucket);
+  const isSel = selectedConds.has(cond);
+
+  return `<div class="card${isSel ? " selected" : ""}" style="border-top-color:${color}" data-cond="${cond}">
+    <button class="card-check" type="button" aria-pressed="${isSel}"
+      aria-label="Select ${fmtCond(cond)} for comparison" onclick="toggleSelect(event, '${cond}')"></button>
+    <div class="card-top-row">
+      <span class="card-bucket">${bkt}</span>
+      <span class="card-badges">${badges}</span>
+    </div>
+    <div class="card-body">
+      <a class="card-header" href="viewer.html?run=${encodeURIComponent(rep.path)}">
+        <div class="card-mid">
+          <div class="card-left">
+            <div class="card-condition" style="color:${color}" title="${desc}">${fmtCond(cond)}</div>
+            <div class="card-desc" title="${desc}">${desc}</div>
+            <div class="card-stats">
+              ${leader ? `<div class="card-leader">${leader.name} <span>${leader.pct}%</span></div>` : ""}
+              <div class="card-meta"><span title="largest gap between published score and delivered satisfaction across the run">peak score-satisfaction gap ${rep.peak_gap.toFixed(2)}</span> &nbsp;&middot;&nbsp; ${rep.n_rounds} rounds</div>
+              <div class="card-open-hint">&#8599; ${seedNum(rep.seed)} &nbsp;&middot;&nbsp; ${modelLabel(rep.model) || "Heuristic"}</div>
+            </div>
+          </div>
+          ${pie}
+        </div>
+      </a>
+      <div class="card-seeds">${seedsHTML}</div>
+    </div>
+  </div>`;
+}
+
+function expandSeeds(btn) {
+  btn.closest(".seed-group").classList.add("expanded");
+}
+
+/* ---- State & filter ---- */
+let allRuns = [];
+const state = { bucket: "all", mode: "all", model: "all", search: "" };
+
+function filtered() {
+  const groups = groupByCondition(allRuns);
+  return Object.entries(groups)
+    .map(([cond, runs]) => {
+      let r = runs;
+      if (state.bucket !== "all") r = r.filter(x => x.bucket === state.bucket);
+      if (state.mode   !== "all") r = r.filter(x => x.mode   === state.mode);
+      if (state.model  !== "all") {
+        if (state.model === "__none__") r = r.filter(x => !x.model);
+        else r = r.filter(x => x.model === state.model);
+      }
+      if (state.search) {
+        const q = state.search.toLowerCase();
+        const hay = (cond + " " + fmtCond(cond) + " " + bucketLabel(runs[0].bucket)).toLowerCase();
+        if (!hay.includes(q)) r = [];
+      }
+      return r.length > 0 ? [cond, r, runs] : null;
+    })
+    .filter(Boolean);
+}
+
+function syncURL() {
+  const p = new URLSearchParams();
+  if (state.bucket !== "all") p.set("bucket", state.bucket);
+  if (state.mode   !== "all") p.set("mode",   state.mode);
+  if (state.model  !== "all") p.set("model",  state.model);
+  if (state.search)           p.set("q",      state.search);
+  const qs = p.toString();
+  history.replaceState(null, "", qs ? "?" + qs : location.pathname);
+}
+
+function render() {
+  syncURL();
+  const groups = filtered();
+  document.getElementById("showing").textContent =
+    `Showing ${groups.length} conditions (${groups.reduce((n,[,r])=>n+r.length,0)} runs) of ${allRuns.length} total`;
+  const grid  = document.getElementById("grid");
+  const empty = document.getElementById("empty");
+  if (!groups.length) {
+    grid.innerHTML = ""; empty.classList.remove("hidden"); return;
+  }
+  empty.classList.add("hidden");
+  // Sort: bucket → condition
+  groups.sort((a,b) => {
+    const ba = a[2][0].bucket, bb = b[2][0].bucket;
+    if (ba !== bb) return ba.localeCompare(bb);
+    return a[0].localeCompare(b[0]);
+  });
+  grid.innerHTML = groups.map(([cond, runs]) =>
+    cardHTML(cond, runs, state.mode, state.model)
+  ).join("");
+}
+
+/* ---- Build filters ---- */
+function buildFilters(runs) {
+  const buckets = [...new Set(runs.map(r => r.bucket))].sort();
+  const models  = [...new Set(runs.map(r => r.model).filter(Boolean))].sort();
+
+  const pillsEl = document.getElementById("bucket-pills");
+  [{ id:"all", label:"All" }, ...buckets.map(b => ({ id:b, label:bucketLabel(b) }))]
+    .forEach(({ id, label }) => {
+      const btn = document.createElement("button");
+      btn.className = "fpill" + (id==="all" ? " active" : "");
+      btn.dataset.bucket = id; btn.textContent = label;
+      btn.addEventListener("click", () => {
+        state.bucket = id;
+        pillsEl.querySelectorAll(".fpill").forEach(p => p.classList.remove("active"));
+        btn.classList.add("active"); render();
+      });
+      pillsEl.appendChild(btn);
+    });
+
+  const sel = document.getElementById("model-sel");
+  models.forEach(m => {
+    const opt = document.createElement("option");
+    opt.value = m; opt.textContent = modelLabel(m); sel.appendChild(opt);
+  });
+  if (runs.some(r => !r.model)) {
+    const opt = document.createElement("option");
+    opt.value = "__none__"; opt.textContent = "Heuristic (no model)"; sel.appendChild(opt);
+  }
+}
+
+/* ---- Compare mode ---- */
+const selectedConds = new Set();
+
+function clearSelection() {
+  selectedConds.clear();
+  document.querySelectorAll(".card.selected").forEach(el => el.classList.remove("selected"));
+  updateCompareBar();
+}
+
+function toggleSelect(event, cond) {
+  event.preventDefault();
+  event.stopPropagation();
+  if (selectedConds.has(cond)) selectedConds.delete(cond);
+  else selectedConds.add(cond);
+  document.querySelectorAll(`.card[data-cond="${cond}"]`).forEach(el => {
+    el.classList.toggle("selected", selectedConds.has(cond));
+    const chk = el.querySelector(".card-check");
+    if (chk) chk.setAttribute("aria-pressed", String(selectedConds.has(cond)));
+  });
+  updateCompareBar();
+}
+
+function updateCompareBar() {
+  const n = selectedConds.size;
+  document.getElementById("compare-bar").classList.toggle("hidden", n === 0);
+  document.getElementById("compare-count").textContent = n < 2
+    ? `${n} condition${n!==1?"s":""} selected · select 2+ conditions`
+    : `${n} conditions selected`;
+  document.getElementById("compare-go").setAttribute("aria-disabled", String(n < 2));
+  document.getElementById("grid").style.paddingBottom = n === 0 ? "" : "80px";
+}
+
+document.getElementById("compare-toggle").addEventListener("click", () => {
+  const grid = document.getElementById("grid");
+  const active = grid.classList.toggle("compare-mode");
+  document.getElementById("compare-toggle").classList.toggle("active", active);
+  if (!active) clearSelection();
+});
+
+document.getElementById("compare-clear").addEventListener("click", clearSelection);
+
+document.getElementById("compare-go").addEventListener("click", () => {
+  if (selectedConds.size < 2) return;
+  const conds = [...selectedConds].join("|");
+  let model;
+  if (state.model !== "all" && state.model !== "__none__") model = state.model;
+  else if (state.mode === "heuristic" || state.model === "__none__") model = "__heuristic__";
+  else model = "claude-sonnet-4-6";
+  location.href = `compare.html?mode=across&conditions=${encodeURIComponent(conds)}&model=${encodeURIComponent(model)}`;
+});
+
+/* ---- Event listeners ---- */
+document.getElementById("mode-btns").addEventListener("click", e => {
+  const btn = e.target.closest(".fbtn"); if (!btn) return;
+  state.mode = btn.dataset.mode;
+  document.querySelectorAll("#mode-btns .fbtn").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active"); render();
+});
+document.getElementById("model-sel").addEventListener("change", e => { state.model = e.target.value; render(); });
+document.getElementById("cond-search").addEventListener("input", e => { state.search = e.target.value.trim().toLowerCase(); render(); });
+
+/* ---- Load ---- */
+Evaluarium.loadRunsManifest()
+  .then(data => {
+    allRuns = data;
+    document.getElementById("loading").classList.add("hidden");
+    document.getElementById("hdr-count").textContent = `${data.length} runs · ${[...new Set(data.map(r=>r.condition))].length} conditions`;
+    buildFilters(data);
+    const up = new URLSearchParams(location.search);
+    if (up.has("bucket")) {
+      state.bucket = up.get("bucket");
+      document.querySelectorAll("#bucket-pills .fpill").forEach(p =>
+        p.classList.toggle("active", p.dataset.bucket === state.bucket));
+    }
+    if (up.has("mode")) {
+      state.mode = up.get("mode");
+      document.querySelectorAll("#mode-btns .fbtn").forEach(b =>
+        b.classList.toggle("active", b.dataset.mode === state.mode));
+    }
+    if (up.has("model")) {
+      state.model = up.get("model");
+      document.getElementById("model-sel").value = state.model;
+    }
+    if (up.has("q")) {
+      state.search = up.get("q");
+      document.getElementById("cond-search").value = state.search;
+    }
+    render();
+  })
+  .catch(err => {
+    document.getElementById("loading").classList.add("hidden");
+    const b = document.getElementById("error-banner");
+    b.classList.remove("hidden");
+    // visitor-facing copy; the developer path stays in the console
+    b.setAttribute("role", "alert");
+    b.innerHTML = `<strong>The run data could not be loaded.</strong> Please refresh the page, or try again shortly.`;
+    console.error("runs.json failed to load. If you are running this locally, serve the client folder over HTTP (python -m http.server 8080).", err);
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,1563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>How the Simulation Works · AI Evaluation Ecosystem</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<script src="js/sim_data.js?v=1"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: "Inter", system-ui, sans-serif; background: #f0e6d3; color: #2a1a0e; min-height: 100vh; }
+
+/* ---- Shared site nav ---- */
+#hdr { position: sticky; top: 0; z-index: 30; background: #e8d9c2;
+  border-bottom: 1px solid #c8b498; padding: 0 24px; height: 52px;
+  display: flex; align-items: center; gap: 20px; }
+#hdr-title { font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  color: #2a1a0e; text-decoration: none; white-space: nowrap; }
+#hdr nav { display: flex; gap: 4px; margin-left: auto; }
+#hdr nav a { font-size: 11px; color: #5a4030; text-decoration: none; font-weight: 600;
+  letter-spacing: .04em; padding: 5px 11px; border-radius: 4px; white-space: nowrap; }
+#hdr nav a:hover { background: #ded0b8; color: #2a1a0e; }
+#hdr nav a.here { background: #3d5a8a; color: #f0e6d3; }
+
+/* ---- Section rail (in-page nav) ---- */
+#rail { position: sticky; top: 52px; z-index: 25; background: #ede0ca;
+  border-bottom: 1px solid #c8b498; padding: 7px 24px; display: flex; gap: 6px;
+  overflow-x: auto; scrollbar-width: thin; }
+#rail a { font-size: 10px; color: #7a6045; text-decoration: none; white-space: nowrap;
+  padding: 3px 9px; border-radius: 11px; border: 1px solid transparent; font-weight: 600; }
+#rail a:hover { background: #e0d0b8; color: #2a1a0e; }
+#rail a.on { background: #e0d0b8; border-color: #c8b498; color: #2a1a0e; }
+
+/* ---- Layout ---- */
+/* One content width for everything: prose, figures, tables, and callouts all
+   span the same column, so the right edge lines up down the page. */
+main { max-width: 880px; margin: 0 auto; padding: 40px 24px 80px; }
+.hero h1 { font-size: 30px; font-weight: 700; letter-spacing: -.015em; margin-bottom: 14px; line-height: 1.2; }
+.hero .lede { font-size: 14px; line-height: 1.72; color: #3d2a1a; margin-bottom: 14px; }
+
+section { margin-top: 64px; scroll-margin-top: 104px; }
+.sec-num { font-size: 10px; font-weight: 700; letter-spacing: .16em; color: #7a6045; margin-bottom: 7px; }
+section h2 { font-size: 21px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 12px; }
+section p { font-size: 14px; line-height: 1.72; color: #3d2a1a; margin-bottom: 12px; }
+section p.small { font-size: 13px; color: #5a4030; }
+a { color: #3d5a8a; }
+.cite { color: #3d5a8a; text-decoration: none; border-bottom: 1px dotted #7fa0c8;
+  white-space: nowrap; }
+.cite:hover { border-bottom-style: solid; }
+code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .92em;
+  background: #e8d9c2; padding: 1px 5px; border-radius: 3px; }
+
+/* ---- Diagram frame ---- */
+.fig { background: #e8d9c2; border: 1px solid #c8b498; border-radius: 9px;
+  margin: 22px 0 12px; overflow: hidden; }
+.fig-head { padding: 11px 16px; border-bottom: 1px solid #d0c0a8; background: #ede0ca;
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.fig-head .ft { font-size: 11.5px; font-weight: 700; letter-spacing: .05em;
+  text-transform: uppercase; color: #7a6045; }
+.fig-head .fh-right { margin-left: auto; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.fig-body { padding: 16px; background: #f5ecda; }
+.fig-cap { padding: 9px 16px 12px; font-size: 11.5px; color: #7a6045; line-height: 1.6;
+  border-top: 1px dashed #d8c9b0; background: #ede0ca; }
+.fig svg { display: block; width: 100%; height: auto; overflow: visible; }
+
+/* ---- Controls ---- */
+.ctl { display: flex; align-items: center; gap: 7px; }
+.ctl label { font-size: 9.5px; font-weight: 700; letter-spacing: .09em;
+  text-transform: uppercase; color: #7a6045; white-space: nowrap; }
+select, .btn { background: #e0d0b8; border: 1px solid #c8b498; border-radius: 4px;
+  padding: 4px 9px; font-size: 11px; color: #2a1a0e; font-family: inherit; cursor: pointer; }
+select:focus { border-color: #3d5a8a; }
+:is(.btn, .chip, select, input[type=range], a):focus-visible {
+  outline: 2px solid #3d5a8a; outline-offset: 2px; }
+.btn:hover { background: #d0c0a8; }
+.btn.on { background: #3d5a8a; border-color: #2d4a7a; color: #f0e6d3; font-weight: 600; }
+input[type=range] { -webkit-appearance: none; appearance: none; height: 5px; border-radius: 3px;
+  background: linear-gradient(90deg, #3f7a47, #b05f14); cursor: pointer; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 17px; height: 17px;
+  border-radius: 50%; background: #faf3e4; border: 2.5px solid #2a1a0e; cursor: grab; }
+input[type=range]::-moz-range-thumb { width: 17px; height: 17px; border-radius: 50%;
+  background: #faf3e4; border: 2.5px solid #2a1a0e; cursor: grab; }
+
+.chips { display: flex; gap: 5px; flex-wrap: wrap; }
+.chip { font-size: 10.5px; background: #e0d0b8; border: 1px solid #c8b498; border-radius: 11px;
+  padding: 3px 10px; color: #5a4030; cursor: pointer; font-family: inherit; line-height: 1.5; }
+.chip:hover { background: #d5c3a8; color: #2a1a0e; }
+.chip.on { background: #3d5a8a; border-color: #2d4a7a; color: #f0e6d3; font-weight: 600; }
+
+/* ---- Readout tiles ---- */
+.tiles { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+.tile { flex: 1; min-width: 128px; background: #faf3e4; border: 1px solid #d0c0a8;
+  border-radius: 6px; padding: 9px 12px; }
+.tile .tl { font-size: 9px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase;
+  color: #7a6045; margin-bottom: 3px; }
+.tile .tv { font-size: 21px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.tile .tn { font-size: 10.5px; color: #7a6045; margin-top: 3px; line-height: 1.4; }
+
+/* ---- Key/legend ---- */
+.key { display: flex; gap: 14px; flex-wrap: wrap; font-size: 11px; color: #5a4030; }
+.key span { display: inline-flex; align-items: center; gap: 5px; }
+.key i { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
+
+/* ---- Callout ---- */
+.callout { background: #faf3e4; border: 1px solid #d0c0a8; border-left: 3px solid #3d5a8a;
+  border-radius: 0 7px 7px 0; padding: 13px 16px; margin: 18px 0; }
+.callout .ct { font-size: 10px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase;
+  color: #3d5a8a; margin-bottom: 5px; }
+.callout p { font-size: 13.5px; margin-bottom: 0; color: #3d2a1a; }
+.callout.warn { border-left-color: #b05f14; }
+.callout.warn .ct { color: #b05f14; }
+
+/* ---- Step detail ---- */
+#step-detail { background: #faf3e4; border: 1px solid #d0c0a8; border-radius: 7px;
+  padding: 12px 14px; min-height: 92px; }
+#step-detail .sd-n { font-size: 9.5px; font-weight: 700; letter-spacing: .09em;
+  text-transform: uppercase; color: #7a6045; }
+#step-detail .sd-t { font-size: 14.5px; font-weight: 700; margin: 3px 0 5px; }
+#step-detail .sd-b { font-size: 12.5px; line-height: 1.6; color: #3d2a1a; }
+#step-detail .sd-s { font-size: 11px; color: #7a6045; font-style: italic; margin-top: 6px; }
+
+/* ---- Visibility grid ---- */
+.vis-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(178px, 1fr)); gap: 7px; }
+.vis-item { border: 1px solid #d0c0a8; border-radius: 6px; padding: 8px 10px; background: #faf3e4;
+  transition: opacity .3s, filter .3s, border-color .3s; }
+.vis-item .vi-t { font-size: 11.5px; font-weight: 600; color: #2a1a0e; line-height: 1.35; }
+.vis-item .vi-s { font-size: 9.5px; letter-spacing: .06em; text-transform: uppercase;
+  font-weight: 700; margin-top: 4px; }
+.vis-item.hidden { opacity: .28; filter: blur(1.4px); }
+.vis-item.tier-public .vi-s { color: #3f7a47; }
+.vis-item.tier-private .vi-s { color: #b05f14; }
+.vis-item.tier-truth .vi-s { color: #8a2f2b; }
+.vis-item.tier-truth { border-style: dashed; }
+
+/* ---- Tables ---- */
+table.t { border-collapse: collapse; font-size: 12px; width: 100%; background: #faf3e4; }
+table.t th, table.t td { border: 1px solid #d8c9b0; padding: 6px 9px; text-align: left;
+  vertical-align: top; line-height: 1.5; }
+table.t th { font-size: 9.5px; text-transform: uppercase; letter-spacing: .06em;
+  color: #7a6045; font-weight: 700; background: #ede0ca; }
+table.t td.mono { font-family: ui-monospace, Menlo, monospace; font-variant-numeric: tabular-nums;
+  white-space: nowrap; }
+
+/* ---- Assumption-status chips (section 7 ladder) ---- */
+.as { font-size: 9.5px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+  white-space: nowrap; }
+.as.cal { color: #3d5a8a; }
+.as.anc { color: #8a6d1f; }
+.as.sti { color: #b05f14; }
+
+/* ---- Case-study question list (section 6 tail) ---- */
+.oq { margin-top: 22px; }
+.oq .oq-t { font-size: 10px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase;
+  color: #7a6045; margin-bottom: 5px; }
+.oq .oq-row { display: flex; gap: 9px; align-items: baseline; font-size: 12px;
+  line-height: 1.55; margin-top: 6px; color: #3d2a1a; }
+.oq .oq-s { font-size: 9px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+  white-space: nowrap; border: 1px solid #d0c0a8; border-radius: 9px; padding: 1px 7px;
+  background: #faf3e4; flex-shrink: 0; }
+.oq .oq-s.impl { color: #3d5a8a; }
+.oq .oq-s.des  { color: #b05f14; }
+
+/* ---- Next-steps cards ---- */
+.next { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin-top: 22px; }
+.next a { display: block; background: #e8d9c2; border: 1px solid #c8b498; border-radius: 8px;
+  padding: 16px 18px; text-decoration: none; transition: box-shadow .15s, transform .15s; }
+.next a:hover { box-shadow: 0 5px 20px rgba(42,26,14,.14); transform: translateY(-2px); }
+.next .nt { font-size: 14.5px; font-weight: 700; color: #2a1a0e; margin-bottom: 5px; }
+.next .nd { font-size: 12px; color: #5a4030; line-height: 1.55; }
+.next .ng { font-size: 11px; color: #3d5a8a; font-weight: 600; margin-top: 9px; }
+
+.footer-links { margin-top: 60px; padding-top: 18px; border-top: 1px solid #c8b498;
+  font-size: 12px; color: #7a6045; display: flex; gap: 22px; flex-wrap: wrap; }
+.footer-links a { color: #3d5a8a; text-decoration: none; font-weight: 600; }
+
+/* ---- HTML figure primitives ----------------------------------------------
+   Figures that are really lists or cards are laid out in HTML, not SVG. A
+   viewBox only ever scales uniformly, so on a phone it shrinks 10px type to
+   ~3px along with the geometry. HTML reflows and keeps type at its real size.
+   SVG is reserved for the two figures whose geometry carries meaning.        */
+.rows { display: flex; flex-direction: column; gap: 11px; }
+
+/* misalignment row: label / paired bars / signed delta */
+.mrow { display: grid; grid-template-columns: 104px 1fr 60px; gap: 12px; align-items: center; }
+.mlab { font-size: 12px; font-weight: 700; text-align: right; line-height: 1.25; }
+.mbars { min-width: 0; }
+.mtrack { height: 14px; background: #e4d6bd; border-radius: 3px; }
+.mtrack + .mtrack { margin-top: 3px; }
+.mfill { height: 100%; border-radius: 3px; }
+.mnums { font-size: 10px; color: #7a6045; margin-top: 4px;
+  font-family: ui-monospace, Menlo, monospace; }
+.mdelta { font-size: 13px; font-weight: 700; text-align: right;
+  font-family: ui-monospace, Menlo, monospace; font-variant-numeric: tabular-nums; }
+.mhead { display: grid; grid-template-columns: 104px 1fr 60px; gap: 12px;
+  font-size: 9.5px; font-weight: 700; letter-spacing: .07em; color: #7a6045;
+  text-transform: uppercase; margin-bottom: 9px; }
+.mhead span:last-child { text-align: right; }
+
+/* stacked need bar, one per consumer profile */
+.pname { font-size: 13px; font-weight: 700; }
+.ptype { font-size: 10px; color: #7a6045; font-style: italic; }
+.ppop { font-size: 10px; color: #7a6045; margin-left: auto; white-space: nowrap; }
+.phead { display: flex; align-items: baseline; gap: 8px; margin-bottom: 5px; }
+.pstack { display: flex; height: 24px; border-radius: 3px; overflow: hidden; }
+.pseg { display: flex; align-items: center; justify-content: center; overflow: hidden;
+  font-size: 10px; font-weight: 700; color: #faf3e4; }
+.ptop { font-size: 11px; font-weight: 700; margin-top: 5px; }
+
+/* belief row: dimension / track with true-weight marker / value pair */
+.brow { display: grid; grid-template-columns: 108px 1fr 132px; gap: 10px; align-items: center; }
+.blab { font-size: 12px; font-weight: 700; text-align: right; }
+.btrack { position: relative; height: 17px; background: #e4d6bd; border-radius: 3px; }
+.bfill { height: 100%; border-radius: 3px; transition: width .1s linear; }
+.bmark { position: absolute; top: -3px; bottom: -3px; width: 2.5px; background: #8a2f2b; }
+.bval { font-size: 10.5px; color: #7a6045; white-space: nowrap;
+  font-family: ui-monospace, Menlo, monospace; }
+.bfoot { margin-top: 16px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.bft { font-size: 12px; font-weight: 700; }
+.bfs { font-size: 11px; color: #7a6045; }
+.bprog { flex: 1; min-width: 110px; height: 8px; background: #e4d6bd;
+  border-radius: 4px; overflow: hidden; }
+.bprog i { display: block; height: 100%; background: #3d5a8a; transition: width .1s linear; }
+
+/* holdout channel cards */
+.chcards { display: grid; grid-template-columns: repeat(auto-fit, minmax(212px, 1fr)); gap: 14px; }
+.chcard { background: #faf3e4; border: 1px solid; border-top-width: 4px;
+  border-radius: 8px; padding: 14px 16px; }
+.cht { font-size: 13.5px; font-weight: 700; margin-bottom: 7px; }
+.chb { font-size: 12.5px; line-height: 1.6; color: #3d2a1a; }
+.chn { font-size: 11px; font-style: italic; color: #7a6045; line-height: 1.55; margin-top: 11px; }
+
+@media (max-width: 720px) {
+  .hero h1 { font-size: 24px; }
+  .hero .lede { font-size: 13.5px; }
+  section p { font-size: 13.5px; }
+  #hdr { gap: 10px; padding: 0 14px; }
+  #hdr nav a { padding: 5px 8px; }
+  #hdr-title { font-size: 10px; }
+  main { padding: 28px 14px 60px; }
+  section { margin-top: 48px; }
+  section h2 { font-size: 19px; }
+
+  /* Controls get their own full-width line instead of fighting the title. */
+  .fig-head { padding: 10px 12px; }
+  .fig-head .fh-right { margin-left: 0; width: 100%; }
+  .fig-head .fh-right select { flex: 1; min-width: 0; }
+  .fig-head .ctl { flex: 1; min-width: 148px; }
+  .fig-body { padding: 12px; }
+  .fig-cap { padding: 9px 12px 12px; }
+
+  /* Readout tiles stack: three across at 375px leaves ~100px per tile. */
+  .tiles { flex-direction: column; gap: 8px; }
+  .tile { min-width: 0; }
+
+  /* The slider needs the full width, so its two end labels move above it. */
+  .slider-row { flex-wrap: wrap; }
+  .slider-row input[type=range] { order: 3; flex-basis: 100%; margin-top: 4px; }
+  .slider-row span { flex: 1; }
+  .slider-row span:last-of-type { text-align: right; }
+
+  /* 17 profile chips wrap to ~6 rows at this width; scroll them instead. */
+  #s-profchips { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none;
+    -webkit-overflow-scrolling: touch; padding-bottom: 2px;
+    -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 26px), transparent);
+    mask-image: linear-gradient(90deg, #000 calc(100% - 26px), transparent); }
+  #s-profchips::-webkit-scrollbar { display: none; }
+  #s-profchips .chip { flex: 0 0 auto; }
+
+  .mrow, .mhead { grid-template-columns: 78px 1fr 52px; gap: 8px; }
+  .mlab { font-size: 11px; }
+  .mdelta { font-size: 12px; }
+  .mhead { font-size: 9px; }
+
+  /* Belief value pair drops to its own line under the track. */
+  .brow { grid-template-columns: 78px 1fr; gap: 8px 10px; }
+  .blab { font-size: 11px; }
+  .bval { grid-column: 2; margin-top: -2px; }
+  #b-svg .mhead { grid-template-columns: 78px 1fr !important; }
+  #b-svg .mhead span:last-child { display: none; }
+
+  .phead { flex-wrap: wrap; gap: 4px 8px; }
+  .ppop { margin-left: 0; flex-basis: 100%; }
+
+  table.t th, table.t td { padding: 5px 7px; font-size: 11.5px; }
+}
+
+/* The section rail only scrolls horizontally on narrow screens, so the
+   right-edge fade is scoped there. On desktop it read as a clipped list. */
+@media (max-width: 720px) {
+  #rail { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 26px), transparent);
+    mask-image: linear-gradient(90deg, #000 calc(100% - 26px), transparent); }
+}
+#rail::-webkit-scrollbar { height: 0; }
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+}
+</style>
+</head>
+<body>
+
+<div id="hdr">
+  <a id="hdr-title" href="index.html">The AI Evaluation Ecosystem</a>
+  <nav>
+    <a href="index.html">Ecosystem</a>
+    <a href="simulation.html" class="here">Simulation</a>
+    <a href="explorer.html">Explorer</a>
+  </nav>
+</div>
+
+<div id="rail">
+  <a href="#mechanism">1 · The mechanism</a>
+  <a href="#space">2 · Capability space</a>
+  <a href="#round">3 · One round</a>
+  <a href="#visibility">4 · Who knows what</a>
+  <a href="#beliefs">5 · How providers learn</a>
+  <a href="#holdouts">6 · The case study</a>
+  <a href="#limits">7 · Claims and limitations</a>
+</div>
+
+<main>
+  <div class="hero">
+    <h1>How the simulation works</h1>
+    <p class="lede">
+      We want to know how an evaluation ecosystem responds when one part of its design changes:
+      what providers build once a benchmark is hidden, or which feedback channels dampen gaming
+      and which amplify it. Questions like these are hard to study directly. Case studies
+      document outcomes after they appear, and the real
+      ecosystem cannot be rerun with one design choice changed. Game-theoretic models become
+      intractable once actors differ from each other, see different information, and interact
+      through many feedback channels. System-dynamics models keep the feedback loops but average
+      the actors away. A simulation gives up realism for control: it does not predict what real
+      evaluation markets will do, but it lets one lever change while everything else holds fixed.
+      Ours is a generative agent-based model, a recent approach in which the strategic actors are
+      LLMs that read the same kind of material real decision-makers do (incident reports,
+      competitor moves, regulatory news) and act on it, while the market itself runs on explicit
+      rules (<a class="cite" href="https://arxiv.org/abs/2304.03442" target="_blank" rel="noopener">Park et al. 2023</a>;
+      <a class="cite" href="https://arxiv.org/abs/2312.03664" target="_blank" rel="noopener">Vezhnevets et al. 2023</a>).
+      We treat the simulation as a complement to those other methods and as a source of
+      hypotheses for empirical work to test, not as evidence about deployed systems; the
+      <a href="#limits">final section</a> states the boundary of the results and grades every
+      structural assumption by the evidence behind it.
+    </p>
+    <p class="lede">
+      The simulation runs a stylized AI evaluation ecosystem for 40 monthly rounds. Six competing
+      providers build models, a single evaluator
+      scores them and publishes a leaderboard, 51 consumer segments adopt and switch, a regulator
+      intervenes, four funder types allocate capital, and a media actor decides what gets covered.
+      Providers, the regulator, and funders reason with an LLM; media and the consumer market are
+      rule-based.
+    </p>
+  </div>
+
+  <!-- ============================ 1. MECHANISM ============================ -->
+  <section id="mechanism">
+    <h2>How a score and a user's experience come apart</h2>
+    <p>
+      Real models are compared on many axes at once: reasoning, coding, knowledge, safety,
+      communication, and agentic work. The simulation takes that list literally and treats a model
+      as a point in a six-dimensional space, one axis per capability. A benchmark score is a
+      weighted average of those six numbers, with the weights set by what the benchmark tests. A
+      user's experience is a different weighted average, with the weights set by what that user
+      needs. Because the weights differ, the same improvement to a model can raise the score a lot
+      and the experience very little, or the reverse. The abstraction is coarse, and it does one
+      job: it keeps what is measured separate from what is needed.
+    </p>
+    <p>
+      In this model, gaming is the gap between those two averages. A provider can see the
+      benchmark's weights, or at least infer them, but not its users'. When it directs research
+      toward the target it can see, the gap opens.
+    </p>
+    <p>
+      In the figure below, a provider has a fixed research budget and one choice: aim it at the
+      dimensions the benchmark rewards, or at the dimensions its audience needs. During a real run
+      the provider sees neither target exactly; it infers the benchmark's weights from noisy scores
+      and gets only a rough signal of what its users need. Here both targets are fixed and visible,
+      so you can aim by hand and watch the score and the satisfaction readout respond.
+    </p>
+
+    <div class="fig">
+      <div class="fig-head">
+        <span class="ft">Interactive · the gap machine</span>
+        <span class="fh-right">
+          <span class="ctl">
+            <label for="m-bench">Benchmark</label>
+            <select id="m-bench"></select>
+          </span>
+          <span class="ctl">
+            <label for="m-aud">Audience</label>
+            <select id="m-aud"></select>
+          </span>
+        </span>
+      </div>
+      <div class="fig-body">
+        <div id="m-svg"></div>
+        <div class="slider-row" style="display:flex;align-items:center;gap:12px;margin:14px 2px 12px">
+          <span style="font-size:10.5px;font-weight:700;color:#3f7a47;white-space:nowrap">aimed at users</span>
+          <input type="range" id="m-slider" min="0" max="100" value="50" style="flex:1">
+          <span style="font-size:10.5px;font-weight:700;color:#b05f14;white-space:nowrap">aimed at the benchmark</span>
+        </div>
+      </div>
+      <div class="fig-cap">
+        This is a toy of the mechanism rather than a simulation run. Capability starts equal on
+        every dimension and grows in the chosen direction under a fixed budget; the benchmark
+        weights and audience need weights are the ones the simulation uses. In a real run the dial
+        sits at 0.80 toward the benchmark for every provider, and what changes from round to round
+        is which dimensions the provider believes the benchmark rewards.
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ 2. SPACE ============================ -->
+  <section id="space">
+    <h2>Six capability dimensions, 51 consumer segments</h2>
+    <p>
+      Benchmarks, consumer needs, and provider capabilities are all described by weights over the
+      same six dimensions. Sharing one space is what lets the score and the user's experience in
+      Section 1 be compared at all. It is also a simplification: real capability has far more than
+      six axes.
+    </p>
+
+    <div class="fig">
+      <div class="fig-head">
+        <span class="ft">Structural misalignment</span>
+        <span class="fh-right"><span class="key">
+          <span><i style="background:#8a5a2f"></i>benchmark roster average</span>
+          <span><i style="background:#3f7a47"></i>population need average</span>
+        </span></span>
+      </div>
+      <div class="fig-body"><div id="s-mis"></div></div>
+      <div class="fig-cap" id="s-mis-cap"></div>
+    </div>
+
+    <p>
+      The consumer market has <span id="s-nseg">51</span> segments, built from
+      <span id="s-nprof">17</span> use-case profiles and
+      <span id="s-narch">6</span> behavioral archetypes; each profile is paired only with the
+      three archetypes for its consumer type, individual or organizational. Needs vary sharply
+      across profiles. Pick a few and compare.
+    </p>
+
+    <div class="fig">
+      <div class="fig-head">
+        <span class="ft">Interactive · who needs what</span>
+        <span class="fh-right"><span class="key" id="s-key"></span></span>
+      </div>
+      <div class="fig-head" style="border-top:1px dashed #d8c9b0">
+        <span class="chips" id="s-profchips"></span>
+      </div>
+      <div class="fig-body"><div id="s-prof"></div></div>
+      <div class="fig-cap">
+        Need weights per use-case profile, summing to 1. A benchmark that weights coding heavily
+        tells a hospital system almost nothing. Behavioral archetypes change how a segment chooses (how much it trusts the
+        leaderboard, how costly switching is) but never what it needs.
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ 3. ROUND ============================ -->
+  <section id="round">
+    <h2>What happens in one round</h2>
+    <p>
+      One round is one month. Actors act in a fixed order, so each sees the consequences of those
+      before it. Capital and regulatory decisions take effect at the start of the next round, which
+      closes the loop.
+    </p>
+
+    <div class="fig">
+      <div class="fig-head">
+        <span class="ft">Animated · round protocol</span>
+        <span class="fh-right">
+          <button class="btn on" id="r-play">Pause</button>
+          <button class="btn" id="r-step">Step</button>
+        </span>
+      </div>
+      <div class="fig-body">
+        <div id="r-svg"></div>
+        <div id="step-detail" style="margin-top:12px">
+          <div class="sd-n" id="r-n"></div>
+          <div class="sd-t" id="r-t"></div>
+          <div class="sd-b" id="r-b"></div>
+          <div class="sd-s" id="r-s"></div>
+        </div>
+      </div>
+      <div class="fig-cap">
+        Click any step to hold it.
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ 4. VISIBILITY ============================ -->
+  <section id="visibility">
+    <h2>Who knows what</h2>
+    <p>
+      Information in the simulation sits in three tiers, and the code enforces the split. Public
+      state is visible to everyone. Private state is visible only to its owner. Ground truth, which
+      includes the true capability vectors, the benchmarks' true weights, and true consumer
+      satisfaction, is held by the simulation itself: no actor can read it, and it never appears in
+      an LLM prompt. The gap in Section 1 is measured against that hidden tier.
+    </p>
+
+    <div class="fig">
+      <div class="fig-head">
+        <span class="ft">Interactive · what each actor sees</span>
+        <span class="fh-right"><span class="chips" id="v-chips"></span></span>
+      </div>
+      <div class="fig-body"><div class="vis-grid" id="v-grid"></div></div>
+      <div class="fig-cap" id="v-cap"></div>
+    </div>
+
+    <div class="callout warn">
+      <div class="ct">Score reliability is computed after the run</div>
+      <p>
+        Score reliability, the correlation between published scores and the satisfaction
+        consumers actually got, is never computed during a run. The simulation logs the
+        ingredients every round and researchers compute it afterwards from the log. No actor
+        receives it. Actors can only notice that scores are misleading through indirect signs:
+        incidents, drifting market share, media coverage.
+      </p>
+    </div>
+  </section>
+
+  <!-- ============================ 5. BELIEFS ============================ -->
+  <section id="beliefs">
+    <h2>How providers learn what a benchmark rewards</h2>
+    <p>
+      A provider cannot see which dimensions a benchmark weights. It sees only its own score. Each
+      round it predicts the score its current capabilities should earn, compares the prediction
+      with the score it got, and moves its guess about the weights in the direction of the error.
+      The step size is 0.15 for most providers and 0.10 for the two safety-focused ones. The same
+      rule runs whether a provider plans with an LLM or with heuristics: it updates what the
+      provider believes about the benchmark, and the provider then decides what to do with that
+      belief.
+    </p>
+
+    <div class="fig">
+      <div class="fig-head">
+        <span class="ft">Animated · belief convergence</span>
+        <span class="fh-right">
+          <span class="chips">
+            <button class="chip on" data-bmode="public">Public benchmark</button>
+            <button class="chip" data-bmode="private">Private holdout</button>
+          </span>
+          <button class="btn" id="b-replay">Replay</button>
+        </span>
+      </div>
+      <div class="fig-body"><div id="b-svg"></div></div>
+      <div class="fig-cap" id="b-cap"></div>
+    </div>
+  </section>
+
+  <!-- ============================ 6. HOLDOUTS ============================ -->
+  <section id="holdouts">
+    <h2>The case study: private holdouts redistribute the gap</h2>
+    <p>
+      The obvious response to benchmark gaming is to stop showing the test. Hold items back, publish
+      less often, and the provider can no longer aim precisely. Making a benchmark private changes three
+      things at once, and they do not all push the same way.
+    </p>
+
+    <div class="fig">
+      <div class="fig-head"><span class="ft">Three channels a holdout opens</span></div>
+      <div class="fig-body"><div id="h-svg"></div></div>
+      <div class="fig-cap">
+        Each condition sets two of these together: how much of each benchmark is hidden, and how far
+        the hidden weights sit from the public ones.
+      </div>
+    </div>
+
+    <table class="t" style="margin-top:18px">
+      <thead><tr><th>Type</th><th>Hidden share (h)</th><th>What the market sees</th><th>Real analog</th></tr></thead>
+      <tbody>
+        <tr><td><b>public</b></td><td>0</td>
+            <td>Full score every round, computed on the visible item set.</td>
+            <td>MMLU, HumanEval, GPQA</td></tr>
+        <tr><td><b>partial</b></td><td>0.3</td>
+            <td>Holdout-only score, computed on 30% of items, so noisier.</td>
+            <td>Contamination-mitigated leaderboards</td></tr>
+        <tr><td><b>private</b></td><td>1.0</td>
+            <td>Holdout-only score on the full private set.</td>
+            <td>FrontierMath-style</td></tr>
+        <tr><td><b>iid_holdout</b></td><td>1.0</td>
+            <td>Ablation. Holdout weights equal public weights, so it isolates lag and noise from weight distance.</td>
+            <td>None, diagnostic only</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <div class="ct">The finding</div>
+      <p>
+        Moving from public benchmarks to private holdouts redistributes, rather than closes, the
+        gap between benchmark scores and user experience. Aiming gets harder, but what benchmarks
+        reward and what users need still differ, so the gap reappears elsewhere in the roster.
+        Holdout design changes where the gap sits, not whether there is one.
+      </p>
+    </div>
+    <p class="small">
+      Per-condition results, per-benchmark breakdowns, and the seed distributions behind that
+      sentence are all in the <a href="explorer.html">Run Explorer</a>.
+    </p>
+
+    <div class="oq">
+      <div class="oq-t">Other questions the simulation can ask</div>
+      <p class="small" style="margin-bottom:0">Implemented means the condition exists and can be run; designed means it is specified but not yet built. None of these is a finding yet.</p>
+      <div class="oq-row"><span class="oq-s impl">implemented</span><span>What changes when the evaluator runs as a company, charging fees and selling early access?</span></div>
+      <div class="oq-row"><span class="oq-s impl">implemented</span><span>Do EU-style precautionary and US-style light-touch regulatory regimes push safety investment and market structure in different directions?</span></div>
+      <div class="oq-row"><span class="oq-s des">designed</span><span>What does a mandate to disclose safety investment, in the style of California SB 53, change for consumers, funders, and media?</span></div>
+      <div class="oq-row"><span class="oq-s des">designed</span><span>What happens when informal media signals, rather than formal benchmarks, become the primary channel consumers listen to?</span></div>
+    </div>
+  </section>
+
+  <!-- ============================ 7. LIMITS ============================ -->
+  <section id="limits">
+    <h2>Claims and limitations</h2>
+    <p>
+      The simulation generates hypotheses. It points at dynamics worth checking empirically; it
+      does not show that they occur in real systems. Its claims come in two kinds. The numbers,
+      such as how large a gap gets or how fast it grows, belong to this particular
+      parameterization and should not be carried anywhere else. The mechanisms, meaning which
+      direction a design change pushes outcomes and why, are the findings.
+    </p>
+
+    <div class="callout">
+      <div class="ct">The boundary</div>
+      <p>
+        The results apply to settings where public benchmarks and leaderboards drive decisions and
+        consumers need different things. To judge whether they carry to a new setting, say a
+        domain evaluated entirely through internal test suites, ask which of the four conditions
+        below it weakens.
+      </p>
+    </div>
+
+    <p>Four conditions the central mechanism needs:</p>
+    <table class="t">
+      <tbody>
+        <tr><td><b>Watched scores</b></td><td>Published scores steer some real decisions: consumer choices, coverage, capital. If nobody acts on the leaderboard, there is no pressure to optimize against it.</td></tr>
+        <tr><td><b>Asymmetric investment</b></td><td>At least one capability dimension has a dedicated investment pathway and at least one does not. With a single dimension, hiding a benchmark's weights would add nothing but noise to the score.</td></tr>
+        <tr><td><b>Heterogeneous needs</b></td><td>Consumers weight capabilities differently from each other and from benchmarks. If every consumer needed the same thing, the central finding would vanish by construction.</td></tr>
+        <tr><td><b>Adaptive providers</b></td><td>Providers use score feedback to adjust what they build. A minimal error-correction rule is enough.</td></tr>
+      </tbody>
+    </table>
+
+    <p style="margin-top:18px">
+      Underneath those sit seven structural assumptions, each graded by the evidence behind it:
+      <span class="as cal">calibrated</span> means fit to external data,
+      <span class="as anc">anchored</span> means published studies support the qualitative shape,
+      and <span class="as sti">stipulated</span> means a modeling choice with a rationale but no
+      direct empirical support.
+    </p>
+    <table class="t">
+      <thead><tr><th>Assumption</th><th>Status</th><th>Basis and sensitivity</th></tr></thead>
+      <tbody>
+        <tr><td>Six actor types cover the ecosystem, with heterogeneity inside each type</td><td><span class="as sti">stipulated</span></td><td>A tractability choice.</td></tr>
+        <tr><td>Consumers mix the leaderboard signal with their own experience, in ratios that vary by archetype</td><td><span class="as anc">anchored</span></td><td>Trust levels follow qualitative adoption studies (<a class="cite" href="https://arxiv.org/abs/2412.05520" target="_blank" rel="noopener">Hardy et al. 2024</a>; <a class="cite" href="https://doi.org/10.1145/3173574.3174230" target="_blank" rel="noopener">Woodruff et al. 2018</a>); the exact mixture weights are stipulated defaults. </td></tr>
+        <tr><td>Different consumers need different things</td><td><span class="as cal">calibrated</span></td><td>Need weights fit to occupation-level adoption data (<a class="cite" href="https://www.nber.org/papers/w32966" target="_blank" rel="noopener">Bick et al. 2024</a>; <a class="cite" href="https://aiindex.stanford.edu/report/" target="_blank" rel="noopener">Stanford AI Index 2024</a>; <a class="cite" href="https://www.mckinsey.com/capabilities/quantumblack/our-insights/the-state-of-ai-2024" target="_blank" rel="noopener">McKinsey 2024</a>). If needs were uniform there would be no gap to redistribute, so the finding depends on needs differing.</td></tr>
+        <tr><td>Six capability dimensions with asymmetric investment pathways</td><td><span class="as anc">anchored</span></td><td>The dimensions span the axes frontier models are currently differentiated on. The roster is anchored to real evaluations (<a class="cite" href="https://arxiv.org/abs/2009.03300" target="_blank" rel="noopener">MMLU</a>; <a class="cite" href="https://arxiv.org/abs/2107.03374" target="_blank" rel="noopener">HumanEval</a>; <a class="cite" href="https://arxiv.org/abs/2109.07958" target="_blank" rel="noopener">TruthfulQA</a>). The mechanism needs only that some dimensions are easier to invest in than others, not this exact six-way split.</td></tr>
+        <tr><td>Scores are noisy linear projections of capability, reported as a running maximum</td><td><span class="as sti">stipulated</span></td><td>Linear scoring is standard in measurement models.</td></tr>
+        <tr><td>Providers infer what a benchmark rewards from score prediction errors</td><td><span class="as sti">stipulated</span></td><td>A minimal learning rule, the same in both planner modes.</td></tr>
+        <tr><td>Capital responds to scores and sentiment</td><td><span class="as anc">anchored</span></td><td>Markets move on measures of a thing, not only on the thing (<a class="cite" href="https://arxiv.org/abs/2002.06673" target="_blank" rel="noopener">Perdomo et al. 2020</a>).</td></tr>
+      </tbody>
+    </table>
+    <p class="small" style="margin-top:12px">
+      The weakest link is the satisfaction function itself, which is stipulated: it has not been
+      validated against what users report wanting, and every gap number inherits that uncertainty.
+      Measuring the gap against different consumer groups changes its size substantially but has
+      never changed the direction of a result.
+    </p>
+
+    <p style="margin-top:18px">Some things are left out on purpose. The list is not exhaustive; it covers the omissions most likely to change how evaluation itself behaves.</p>
+    <table class="t">
+      <tbody>
+        <tr><td><b>Competing evaluators</b></td><td>A single evaluator defines the roster and every benchmark's weights. There is no second leaderboard weighting the same axis differently, and no standards body reconciling the two, so a provider never chooses which measurement to answer to.</td></tr>
+        <tr><td><b>Price</b></td><td>Cost is a fixed per-provider constant weighted by a fixed consumer sensitivity. No provider cuts price, and nobody trades capability against cost per token, so the leaderboard carries competitive weight that price and latency absorb in practice.</td></tr>
+        <tr><td><b>Internal evaluation suites</b></td><td>Providers are measured only by the public evaluator. No internal test suite gates a release and no live-traffic result feeds back into what gets built, so the leaderboard is the only measurement pressure on R&amp;D.</td></tr>
+        <tr><td><b>Multi-model users</b></td><td>Adoption is a share of a segment, and each switching decision is made from the position of one incumbent. Real usage is closer to a continuous split of traffic across several models at once, routed by task, with a second kept as a fallback.</td></tr>
+        <tr><td><b>Distribution advantage</b></td><td>Every provider reaches every consumer through the same channel. Bundling a model into a product people already use is not represented, so a weaker model cannot win on placement.</td></tr>
+        <tr><td><b>Startup entry</b></td><td>No provider is created mid-run, so the roster of six is fixed. A new lab has no track record and no installed base, which leaves a public benchmark result as the main credible claim it can make, and open-source labs lean on this hardest by publishing weights and scores in place of a commercial reputation. Holding entry out understates how much pressure the leaderboard is under.</td></tr>
+        <tr><td><b>Shifting needs</b></td><td>Consumer need weights are fixed for the run, so growing demand for agentic capability over time is not modeled.</td></tr>
+      </tbody>
+    </table>
+    <p class="small" style="margin-top:14px">
+      In most runs every LLM actor reasons with the same underlying model, so when strategies
+      converge, part of that may be the model's own habits rather than the incentives. Robustness
+      across models is checked separately.
+    </p>
+  </section>
+
+  <!-- ============================ NEXT ============================ -->
+  <section>
+    <div class="sec-num">NEXT</div>
+    <h2>Keep going</h2>
+    <div class="next">
+      <a href="index.html">
+        <div class="nt">The ecosystem</div>
+        <div class="nd">The actor map this simulation is built from, who sits outside the modeled core, and the literature on each interaction.</div>
+        <div class="ng">See the map →</div>
+      </a>
+      <a href="explorer.html">
+        <div class="nt">Run Explorer</div>
+        <div class="nd">Every run, condition by condition and seed by seed. Play a single run back, or compare conditions side by side.</div>
+        <div class="ng">Browse runs →</div>
+      </a>
+    </div>
+  </section>
+
+  <div class="footer-links">
+    <span>This page accompanies our research paper (under review).</span>
+  </div>
+</main>
+
+<script>
+(function () {
+"use strict";
+const D = window.SIMDATA;
+const NS = "http://www.w3.org/2000/svg";
+const DIMS = D.dims;
+const DIMC = {
+  reasoning: "#3d5a8a", coding: "#2f7d6b", knowledge: "#9a7020",
+  safety: "#8a2f2b", communication: "#6b4a8a", agentic: "#b05f14"
+};
+const REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ---------- svg helpers ---------- */
+function svg(parent, vb, extra) {
+  const s = document.createElementNS(NS, "svg");
+  s.setAttribute("viewBox", vb);
+  s.setAttribute("preserveAspectRatio", "xMidYMid meet");
+  if (extra) for (const k in extra) s.setAttribute(k, extra[k]);
+  parent.appendChild(s);
+  return s;
+}
+function el(tag, attrs, parent) {
+  const n = document.createElementNS(NS, tag);
+  for (const k in attrs) n.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(n);
+  return n;
+}
+function txt(parent, x, y, s, a) {
+  const t = el("text", Object.assign(
+    { x: x, y: y, "dominant-baseline": "central", "font-size": 11, fill: "#5a4030" }, a || {}), parent);
+  t.textContent = s;
+  return t;
+}
+function dot(a, b) { let s = 0; for (const d of DIMS) s += (a[d] || 0) * (b[d] || 0); return s; }
+function norm(v) {
+  const t = DIMS.reduce((s, d) => s + (v[d] || 0), 0) || 1;
+  const o = {}; DIMS.forEach(d => o[d] = (v[d] || 0) / t); return o;
+}
+function lerpV(a, b, t) {
+  const o = {}; DIMS.forEach(d => o[d] = a[d] * (1 - t) + b[d] * t); return o;
+}
+// Figures build on load rather than on scroll. An earlier version gated them
+// behind IntersectionObserver, which never fired for a not-yet-populated mount
+// point and also missed programmatic scrolling, leaving figures blank. The
+// build cost is negligible, so correctness wins over laziness here.
+
+/* ================= 1. THE GAP MACHINE ================= */
+(function mechanism() {
+  const host = document.getElementById("m-svg");
+  const selB = document.getElementById("m-bench");
+  const selA = document.getElementById("m-aud");
+  const slider = document.getElementById("m-slider");
+
+  D.benchmarks.forEach(function (b, i) {
+    const o = document.createElement("option");
+    o.value = i; o.textContent = b.name;
+    if (b.name === "Coding Evaluation") o.selected = true;
+    selB.appendChild(o);
+  });
+  const audiences = [{ key: "__pop", label: "Whole population", need: D.popAvgNeed }]
+    .concat(D.profiles.map(function (p) { return { key: p.key, label: p.label, need: p.need }; }));
+  audiences.forEach(function (a, i) {
+    const o = document.createElement("option");
+    o.value = i; o.textContent = a.label;
+    if (a.key === "hospital_system") o.selected = true;
+    selA.appendChild(o);
+  });
+
+  const BUDGET = 1.15;   // total capability added across the run
+  const BASE = 0.42;     // starting level, uniform across dimensions
+
+  // Two layouts, not one scaled layout. Landscape puts the radar beside the
+  // bars; portrait stacks them and uses a much narrower viewBox, so the same
+  // nominal font size renders roughly 2.5x larger on a phone. F scales type up
+  // a little further in portrait, where there is no competing panel.
+  function layoutOf(narrow) {
+    return narrow
+      ? { vb: "-16 0 420 602", F: 1.25,
+          CX: 192, CY: 146, R: 86, RLAB: 26, CAPLAB: 46,
+          BX: 12, BW: 264, TOP: 340, ROW: 44, DIRW: 180, DIRLAB: 72, HDR: 34 }
+      : { vb: "-20 0 930 308", F: 1,
+          CX: 168, CY: 128, R: 92, RLAB: 26, CAPLAB: 46,
+          BX: 400, BW: 430, TOP: 44, ROW: 46, DIRW: 200, DIRLAB: 74, HDR: 28 };
+  }
+
+  // Figure orientation flips at 900px, not at the 720px CSS breakpoint. Measured:
+  // the landscape geometry needs ~900px of container to keep its 9.5px type at a
+  // readable size; at 768px it renders at 6.9px and labels collide. Control and
+  // typography reflow stays at 720px (see the CSS media query).
+  const NARROW = window.matchMedia("(max-width: 900px)");
+  let L = layoutOf(NARROW.matches);
+  let ui = null;
+  let t = 0.5;
+
+  function build() {
+    host.innerHTML = "";
+    const s = svg(host, L.vb);
+    if (L.F > 1) { s.style.maxWidth = "460px"; s.style.margin = "0 auto"; }
+    const F = L.F;
+    const gRadar = el("g", {}, s);
+    const gBars = el("g", {}, s);
+
+    [0.25, 0.5, 0.75, 1].forEach(function (f) {
+      const pts = DIMS.map(function (d, i) {
+        const a = (i / DIMS.length) * Math.PI * 2 - Math.PI / 2;
+        return (L.CX + Math.cos(a) * L.R * f) + "," + (L.CY + Math.sin(a) * L.R * f);
+      }).join(" ");
+      el("polygon", { points: pts, fill: "none", stroke: "#d8c9b0", "stroke-width": 1 }, gRadar);
+    });
+    DIMS.forEach(function (d, i) {
+      const a = (i / DIMS.length) * Math.PI * 2 - Math.PI / 2;
+      el("line", { x1: L.CX, y1: L.CY, x2: L.CX + Math.cos(a) * L.R, y2: L.CY + Math.sin(a) * L.R,
+        stroke: "#d8c9b0", "stroke-width": 1 }, gRadar);
+      txt(gRadar, L.CX + Math.cos(a) * (L.R + L.RLAB), L.CY + Math.sin(a) * (L.R + L.RLAB - 6),
+        D.dimLabel[d], {
+          "font-size": 10 * F, "font-weight": 700, fill: DIMC[d],
+          "text-anchor": Math.abs(Math.cos(a)) < .3 ? "middle" : (Math.cos(a) > 0 ? "start" : "end")
+        });
+    });
+    const capPoly = el("polygon", { fill: "rgba(61,90,138,.20)", stroke: "#3d5a8a",
+      "stroke-width": 2.5, "stroke-linejoin": "round" }, gRadar);
+    const capDots = DIMS.map(function (d) { return el("circle", { r: 3, fill: DIMC[d] }, gRadar); });
+    txt(gRadar, L.CX, L.CY + L.R + L.CAPLAB, "provider capability vector", {
+      "text-anchor": "middle", "font-size": 10.5 * F, fill: "#7a6045", "font-style": "italic" });
+
+    txt(gBars, L.BX, L.TOP - L.HDR, "the same model, measured two ways", {
+      "font-size": 10.5 * F, "font-weight": 700, fill: "#7a6045", "letter-spacing": ".08em" });
+
+    function mkBar(y, label, color) {
+      txt(gBars, L.BX, y - 12, label, { "font-size": 11 * F, "font-weight": 700, fill: color });
+      el("rect", { x: L.BX, y: y, width: L.BW, height: 17, rx: 3, fill: "#e4d6bd" }, gBars);
+      const f = el("rect", { x: L.BX, y: y, width: 0, height: 17, rx: 3, fill: color }, gBars);
+      const v = txt(gBars, L.BX + L.BW + 8, y + 9, "0.00", { "font-size": 12 * F,
+        "font-weight": 700, fill: color, "font-family": "ui-monospace, Menlo, monospace" });
+      return { fill: f, val: v };
+    }
+    const barScore = mkBar(L.TOP, "Published benchmark score", "#2f6b9e");
+    const barSat = mkBar(L.TOP + L.ROW, "Delivered satisfaction", "#3f7a47");
+
+    // gap bracket, stacked under the satisfaction bar with drop lines from each
+    // bar end so the subtraction is legible rather than implied.
+    const GY = L.TOP + L.ROW + 30;
+    const dropSat = el("line", { stroke: "#3f7a47", "stroke-width": 1, "stroke-dasharray": "2 2",
+      y1: L.TOP + L.ROW + 17, y2: GY }, gBars);
+    const dropScore = el("line", { stroke: "#2f6b9e", "stroke-width": 1, "stroke-dasharray": "2 2",
+      y1: L.TOP + 17, y2: GY }, gBars);
+    const gapRect = el("rect", { x: L.BX, y: GY, height: 14, width: 0, rx: 3,
+      fill: "rgba(176,95,20,.30)", stroke: "#b05f14", "stroke-width": 1.5 }, gBars);
+    const gapLbl = txt(gBars, L.BX, GY + 30, "", { "font-size": 11 * F, "font-weight": 700, fill: "#b05f14" });
+
+    txt(gBars, L.BX, GY + 58, "where the research budget points", {
+      "font-size": 10 * F, "font-weight": 700, fill: "#7a6045", "letter-spacing": ".08em" });
+    const dirBars = DIMS.map(function (d, i) {
+      const y = GY + 72 + i * 15;
+      txt(gBars, L.BX + L.DIRLAB, y + 5, D.dimLabel[d], {
+        "font-size": 9.5 * F, fill: "#7a6045", "text-anchor": "end" });
+      el("rect", { x: L.BX + L.DIRLAB + 6, y: y, width: L.DIRW, height: 9, rx: 2, fill: "#e4d6bd" }, gBars);
+      return el("rect", { x: L.BX + L.DIRLAB + 6, y: y, width: 0, height: 9, rx: 2, fill: DIMC[d] }, gBars);
+    });
+
+    ui = { capPoly: capPoly, capDots: capDots, barScore: barScore, barSat: barSat,
+           dropSat: dropSat, dropScore: dropScore, gapRect: gapRect, gapLbl: gapLbl,
+           dirBars: dirBars };
+  }
+
+  function render() {
+    const b = D.benchmarks[+selB.value];
+    const aud = audiences[+selA.value];
+    const wB = norm(b.w), wA = norm(aud.need);
+    const target = norm(lerpV(wA, wB, t));
+
+    const cap = {};
+    DIMS.forEach(function (d) { cap[d] = Math.min(1, BASE + BUDGET * target[d]); });
+    const score = dot(cap, wB), sat = dot(cap, wA), gap = score - sat;
+
+    const pts = DIMS.map(function (d, i) {
+      const a = (i / DIMS.length) * Math.PI * 2 - Math.PI / 2;
+      const rr = L.R * cap[d];
+      const x = L.CX + Math.cos(a) * rr, y = L.CY + Math.sin(a) * rr;
+      ui.capDots[i].setAttribute("cx", x); ui.capDots[i].setAttribute("cy", y);
+      return x + "," + y;
+    }).join(" ");
+    ui.capPoly.setAttribute("points", pts);
+
+    ui.barScore.fill.setAttribute("width", Math.max(0, score) * L.BW);
+    ui.barScore.val.textContent = score.toFixed(3);
+    ui.barSat.fill.setAttribute("width", Math.max(0, sat) * L.BW);
+    ui.barSat.val.textContent = sat.toFixed(3);
+
+    const gw = Math.abs(gap) * L.BW;
+    ui.gapRect.setAttribute("x", gap >= 0 ? L.BX + sat * L.BW : L.BX + score * L.BW);
+    ui.gapRect.setAttribute("width", gw);
+    ui.dropSat.setAttribute("x1", L.BX + sat * L.BW); ui.dropSat.setAttribute("x2", L.BX + sat * L.BW);
+    ui.dropScore.setAttribute("x1", L.BX + score * L.BW); ui.dropScore.setAttribute("x2", L.BX + score * L.BW);
+    ui.gapLbl.textContent = gap >= 0
+      ? "gap g = +" + gap.toFixed(3) + "  ·  the benchmark overpromises"
+      : "gap g = " + gap.toFixed(3) + "  ·  the benchmark underpromises";
+
+    ui.dirBars.forEach(function (r, i) {
+      r.setAttribute("width", Math.min(L.DIRW, L.DIRW * target[DIMS[i]] * 2.4));
+    });
+
+  }
+
+  // The figure no longer sweeps on its own. The reader moves the slider; the
+  // score, satisfaction and gap readouts live inside the SVG, so the tile row
+  // that repeated them to three decimals is gone.
+  slider.addEventListener("input", function () {
+    t = +slider.value / 100;
+    render();
+  });
+  selB.addEventListener("change", render);
+  selA.addEventListener("change", render);
+
+  function relayout() {
+    const want = layoutOf(NARROW.matches);
+    if (want.vb === L.vb) return;
+    L = want; build(); render();
+  }
+  if (NARROW.addEventListener) NARROW.addEventListener("change", relayout);
+  else if (NARROW.addListener) NARROW.addListener(relayout);   // Safari < 14
+  window.addEventListener("resize", relayout, { passive: true });
+
+  build();
+  render();
+})();
+
+/* ================= 2A. MISALIGNMENT ================= */
+(function misalign() {
+  const host = document.getElementById("s-mis");
+  // Widest bar sets the scale so the longest row fills its track.
+  const maxV = Math.max.apply(null, DIMS.map(function (d) {
+    return Math.max(D.poolAvgW[d], D.popAvgNeed[d]); })) * 1.04;
+
+  const head = document.createElement("div");
+  head.className = "mhead";
+  head.innerHTML = "<span></span><span>share of total weight</span><span>over / under</span>";
+  host.appendChild(head);
+
+  const rows = document.createElement("div");
+  rows.className = "rows";
+  host.appendChild(rows);
+
+  DIMS.forEach(function (d) {
+    const m = D.misalignPool[d];
+    const row = document.createElement("div");
+    row.className = "mrow";
+
+    const lab = document.createElement("div");
+    lab.className = "mlab"; lab.style.color = DIMC[d];
+    lab.textContent = D.dimLabel[d];
+
+    const bars = document.createElement("div");
+    bars.className = "mbars";
+    bars.innerHTML =
+      '<div class="mtrack"><div class="mfill" style="background:#8a5a2f;opacity:.85;width:' +
+        (D.poolAvgW[d] / maxV * 100).toFixed(2) + '%"></div></div>' +
+      '<div class="mtrack"><div class="mfill" style="background:#3f7a47;opacity:.85;width:' +
+        (D.popAvgNeed[d] / maxV * 100).toFixed(2) + '%"></div></div>' +
+      '';
+
+    const delta = document.createElement("div");
+    delta.className = "mdelta";
+    delta.textContent = (m >= 0 ? "+" : "") + m.toFixed(3);
+    delta.style.color = Math.abs(m) < .02 ? "#7a6045" : (m > 0 ? "#b05f14" : "#2f6b9e");
+
+    row.appendChild(lab); row.appendChild(bars); row.appendChild(delta);
+    rows.appendChild(row);
+  });
+
+  const over = DIMS.filter(function (d) { return D.misalignPool[d] > .02; })
+    .sort(function (a, b) { return D.misalignPool[b] - D.misalignPool[a]; });
+  const under = DIMS.filter(function (d) { return D.misalignPool[d] < -.02; })
+    .sort(function (a, b) { return D.misalignPool[a] - D.misalignPool[b]; });
+  document.getElementById("s-mis-cap").textContent =
+    "Average weight per dimension across the " + D.counts.poolSize + "-benchmark pool, against the " +
+    "adoption-weighted average of what consumers need. The roster over-weights " +
+    over.map(function (d) { return D.dimLabel[d].toLowerCase(); }).join(" and ") +
+    ", and under-weights " +
+    under.map(function (d) { return D.dimLabel[d].toLowerCase(); }).join(" and ") +
+    " most. That standing mismatch is the main source of the gap in baseline conditions, " +
+    "and the roster is calibrated to the real benchmark landscape as of 2023.";
+})();
+
+/* ================= 2B. WHO NEEDS WHAT ================= */
+(function profiles() {
+  const host = document.getElementById("s-prof");
+  const chipHost = document.getElementById("s-profchips");
+  document.getElementById("s-nseg").textContent = D.counts.segments;
+  document.getElementById("s-nprof").textContent = D.counts.profiles;
+  document.getElementById("s-narch").textContent = D.counts.archetypes;
+
+  const picked = ["software_dev", "hospital_system", "content_writer", "enterprise_finance"];
+  const sel = new Set(picked);
+
+  const keyHost = document.getElementById("s-key");
+  DIMS.forEach(function (d) {
+    const sp = document.createElement("span");
+    sp.innerHTML = '<i style="background:' + DIMC[d] + '"></i>';
+    sp.appendChild(document.createTextNode(D.dimLabel[d]));
+    keyHost.appendChild(sp);
+  });
+
+  D.profiles.forEach(function (p) {
+    const b = document.createElement("button");
+    b.className = "chip" + (sel.has(p.key) ? " on" : "");
+    b.textContent = p.label;
+    b.addEventListener("click", function () {
+      if (sel.has(p.key)) { if (sel.size <= 1) return; sel.delete(p.key); }
+      else { if (sel.size >= 5) { sel.delete(sel.values().next().value); } sel.add(p.key); }
+      Array.from(chipHost.children).forEach(function (c, i) {
+        c.classList.toggle("on", sel.has(D.profiles[i].key));
+      });
+      draw();
+    });
+    chipHost.appendChild(b);
+  });
+
+  // Label above the bar rather than in a left gutter: the gutter costs ~170px
+  // that a phone does not have, and the stack needs every pixel of width to
+  // keep its smaller segments visible.
+  function draw() {
+    host.innerHTML = "";
+    const rows = document.createElement("div");
+    rows.className = "rows";
+    rows.style.gap = "16px";
+
+    D.profiles.filter(function (p) { return sel.has(p.key); }).forEach(function (p) {
+      const top = DIMS.reduce(function (a, b) { return p.need[a] >= p.need[b] ? a : b; });
+      const row = document.createElement("div");
+
+      const head = document.createElement("div");
+      head.className = "phead";
+      const nm = document.createElement("span");
+      nm.className = "pname"; nm.textContent = p.label;
+      const ty = document.createElement("span");
+      ty.className = "ptype";
+      ty.textContent = p.type === "individual" ? "individual" : "organizational";
+      const pop = document.createElement("span");
+      pop.className = "ppop"; pop.textContent = (p.pop * 100).toFixed(1) + "% of market";
+      head.appendChild(nm); head.appendChild(ty); head.appendChild(pop);
+
+      const stack = document.createElement("div");
+      stack.className = "pstack";
+      DIMS.forEach(function (d) {
+        if (p.need[d] <= 0) return;
+        const seg = document.createElement("div");
+        seg.className = "pseg";
+        seg.style.width = (p.need[d] * 100).toFixed(2) + "%";
+        seg.style.background = DIMC[d];
+        seg.style.opacity = ".88";
+        seg.title = D.dimLabel[d] + " " + (p.need[d] * 100).toFixed(0) + "%";
+        // Percentages only where the segment can actually hold the glyphs;
+        // CSS overflow hides the rest rather than spilling across neighbours.
+        if (p.need[d] >= 0.10) seg.textContent = (p.need[d] * 100).toFixed(0) + "%";
+        stack.appendChild(seg);
+      });
+
+      const tl = document.createElement("div");
+      tl.className = "ptop"; tl.style.color = DIMC[top];
+      tl.textContent = "mostly " + D.dimLabel[top].toLowerCase() +
+        ", at " + (p.need[top] * 100).toFixed(0) + "% of what this segment needs";
+
+      row.appendChild(head); row.appendChild(stack); row.appendChild(tl);
+      rows.appendChild(row);
+    });
+    host.appendChild(rows);
+  }
+  draw();
+})();
+
+/* ================= 3. ROUND CLOCK ================= */
+(function round() {
+  const STEPS = [
+    { n: 1, actor: "providers", name: "Providers plan and build", phase: "I",
+      body: "Each provider splits its budget three ways. R&D grows capability, safety improves the safety dimension and lowers incident risk, and product sharpens the provider's read on what its users need and makes those users less likely to leave. Allocations apply as a three-round rolling average, so a change of plan takes months to show up.",
+      sees: "Sees: last round's scores and ranks, its own market share, a noisy signal of what its users need." },
+    { n: 2, actor: "evaluator", name: "Evaluator scores and publishes", phase: "I",
+      body: "Every provider is scored on every active benchmark. The published score is the running maximum, because providers do not announce regressions. Saturated benchmarks are retired and new ones introduced on schedule.",
+      sees: "Sees: how scores moved and how spread out they are. Never sees: capability vectors, satisfaction, or the true weights of its own benchmarks." },
+    { n: 3, actor: "providers", name: "Providers update beliefs", phase: "I",
+      body: "Each provider compares the score it predicted with the score it got and adjusts its guess about the benchmark's weights in the direction of the error.",
+      sees: "Sees: its own score. Never sees: the true weights it is trying to infer." },
+    { n: 4, actor: "incidents", name: "Incidents are drawn", phase: "I",
+      body: "Each provider has some chance of a safety incident every round: lower with more safety investment, higher with more market share and a longer incident history. Severity is minor, moderate, major, or critical.",
+      sees: "Incidents reach consumers, media, the regulator, and funders in the same round." },
+    { n: 5, actor: "media", name: "Media decides what to cover", phase: "I",
+      body: "Critical incidents get a guaranteed slot. Everything else, including major incidents, competes for a limited headline budget by weighted sampling. A moderate breach makes the news on a slow day and is buried on a busy one.",
+      sees: "Sees: the leaderboard, incidents, interventions, press releases. Never sees: capability vectors or satisfaction." },
+    { n: 6, actor: "consumers", name: "Consumers adopt and switch", phase: "II",
+      body: "Each segment forms an expectation of quality from the leaderboard and its own past experience, in a mix set by its archetype, then compares that expectation with the satisfaction it actually got. A large enough shortfall makes it consider switching, held back by switching cost. Negative coverage pushes more users to look at alternatives.",
+      sees: "Sees: published scores, prices, media. Never sees: true capability." },
+    { n: 7, actor: "regulator", name: "Regulator escalates", phase: "II",
+      body: "Five steps of increasing severity: voluntary commitment, advisory, disclosure mandate, audit, sanction. Each has a cooldown, and a severe incident can skip steps. None of them forces a provider to invest in safety; they work through cost, information, and market reaction.",
+      sees: "Sees: incident rate and severity, market shares, media pressure. Never sees: satisfaction or score reliability." },
+    { n: 8, actor: "funders", name: "Funders allocate capital", phase: "II",
+      body: "Four funder types (venture, corporate, government, foundation), each on its own cooldown, rate providers on traction, sentiment, and incident record, then put capital into next round's R&D budget. Venture funders skip the open-weight provider.",
+      sees: "Sees: benchmark scores, taken at face value. Capital follows the measure, and the measure shapes what gets built next." }
+  ];
+  // "incidents" is not an actor: it is a stochastic event, drawn in the round
+  // order but decided by nobody. Kept visually distinct for that reason.
+  const AC = { providers: "#35507e", evaluator: "#8a2f2b", consumers: "#3f6b45",
+    regulator: "#5c3a78", funders: "#9a5b1f", media: "#2f6b7e", incidents: "#8a6a55" };
+  const ANAME = { providers: "Model Providers", evaluator: "Evaluator", consumers: "Consumers",
+    regulator: "Regulator", funders: "Funders", media: "Media", incidents: "Incidents" };
+
+  // Two orientations. A sequence is spatial, but its DIRECTION is arbitrary, so
+  // the rail rotates to vertical on narrow screens instead of scaling 8 nodes
+  // down to illegibility on one horizontal line.
+  // Figure orientation flips at 900px, not at the 720px CSS breakpoint. Measured:
+  // the landscape geometry needs ~900px of container to keep its 9.5px type at a
+  // readable size; at 768px it renders at 6.9px and labels collide. Control and
+  // typography reflow stays at 720px (see the CSS media query).
+  const NARROW = window.matchMedia("(max-width: 900px)");
+  const host = document.getElementById("r-svg");
+  const N = STEPS.length;
+  let narrow = NARROW.matches;
+  let nodes = [], cur = 0, playing = false, timer = null;
+
+  function build() {
+    host.innerHTML = "";
+    nodes = [];
+    const s = narrow ? buildPortrait() : buildLandscape();
+    if (narrow) { s.style.maxWidth = "440px"; s.style.margin = "0 auto"; }
+    const defs = el("defs", {}, s);
+    const mk = el("marker", { id: "rarrow", viewBox: "0 0 10 10", refX: 8, refY: 5,
+      markerWidth: 6, markerHeight: 6, orient: "auto-start-reverse" }, defs);
+    el("path", { d: "M 0 0 L 10 5 L 0 10 z", fill: "#a08868" }, mk);
+  }
+
+  function mkNode(s, x, y, i, labelAnchor) {
+    const st = STEPS[i];
+    const g = el("g", { class: "rstep", style: "cursor:pointer" }, s);
+    el("circle", { cx: x, cy: y, r: 17, fill: "#f5ecda", stroke: AC[st.actor], "stroke-width": 2.5 }, g);
+    const ring = el("circle", { cx: x, cy: y, r: 17, fill: "none", stroke: AC[st.actor],
+      "stroke-width": 2.5, opacity: 0 }, g);
+    txt(g, x, y, String(st.n), { "text-anchor": "middle", "font-size": 13,
+      "font-weight": 700, fill: AC[st.actor] });
+    const lbl = labelAnchor === "below"
+      ? txt(g, x, y + 34, ANAME[st.actor], { "text-anchor": "middle",
+          "font-size": 9.5, "font-weight": 700, fill: "#7a6045" })
+      : txt(g, x + 28, y, ANAME[st.actor], { "text-anchor": "start",
+          "font-size": 12.5, "font-weight": 700, fill: "#7a6045" });
+    g.addEventListener("click", function () { hold(i); });
+    g.addEventListener("mouseenter", function () { show(i); });
+    nodes.push({ g: g, ring: ring, lbl: lbl });
+    return g;
+  }
+
+  function buildLandscape() {
+    const W = 900, H = 210;
+    const s = svg(host, "-8 0 " + (W + 26) + " " + H);
+    const L = 52, R = W - 58, CY = 96;
+    const step = (R - L) / (N - 1);
+    el("line", { x1: L, y1: CY, x2: R, y2: CY, stroke: "#d8c9b0", "stroke-width": 2 }, s);
+    const p1x = L - 22, p1w = step * 4.5 + 14;
+    el("rect", { x: p1x, y: CY - 62, width: p1w, height: 124, rx: 8,
+      fill: "rgba(61,122,71,.07)", stroke: "#cbbfa4", "stroke-dasharray": "4 3" }, s);
+    el("rect", { x: p1x + p1w + 8, y: CY - 62, width: R - L - p1w + 34, height: 124, rx: 8,
+      fill: "rgba(61,90,138,.07)", stroke: "#cbbfa4", "stroke-dasharray": "4 3" }, s);
+    txt(s, p1x + 10, CY - 52, "PHASE I  ·  the round's public record is made", {
+      "font-size": 9.5, "font-weight": 700, fill: "#7a6045", "letter-spacing": ".07em" });
+    txt(s, p1x + p1w + 18, CY - 52, "PHASE II  ·  the ecosystem reacts", {
+      "font-size": 9.5, "font-weight": 700, fill: "#7a6045", "letter-spacing": ".07em" });
+    for (let i = 0; i < N; i++) mkNode(s, L + i * step, CY, i, "below");
+    el("path", { d: "M " + R + " " + (CY + 46) + " Q " + ((L + R) / 2) + " " + (CY + 84) +
+      " " + L + " " + (CY + 46), fill: "none", stroke: "#a08868", "stroke-width": 1.5,
+      "stroke-dasharray": "5 4", "marker-end": "url(#rarrow)" }, s);
+    txt(s, (L + R) / 2, CY + 74, "capital and regulatory effects land next round", {
+      "text-anchor": "middle", "font-size": 10, fill: "#7a6045", "font-style": "italic" });
+    return s;
+  }
+
+  function buildPortrait() {
+    // PHASEGAP separates the two bands so neither band label lands on a node,
+    // and CX leaves a clear corridor at the left for the loop-back arrow.
+    const W = 400, TOPY = 86, STEP = 60, PHASEGAP = 34, CX = 110;
+    const yOf = function (i) { return TOPY + i * STEP + (i >= 5 ? PHASEGAP : 0); };
+    const H = yOf(N - 1) + 74;
+    const s = svg(host, "0 0 " + W + " " + H);
+    el("line", { x1: CX, y1: yOf(0), x2: CX, y2: yOf(4), stroke: "#d8c9b0", "stroke-width": 2 }, s);
+    el("line", { x1: CX, y1: yOf(5), x2: CX, y2: yOf(N - 1), stroke: "#d8c9b0", "stroke-width": 2 }, s);
+
+    const BX = CX - 42, BW = W - BX - 12;
+    const b1t = yOf(0) - 46, b1b = yOf(4) + 28;
+    const b2t = yOf(5) - 46, b2b = yOf(N - 1) + 28;
+    el("rect", { x: BX, y: b1t, width: BW, height: b1b - b1t, rx: 8,
+      fill: "rgba(61,122,71,.07)", stroke: "#cbbfa4", "stroke-dasharray": "4 3" }, s);
+    el("rect", { x: BX, y: b2t, width: BW, height: b2b - b2t, rx: 8,
+      fill: "rgba(61,90,138,.07)", stroke: "#cbbfa4", "stroke-dasharray": "4 3" }, s);
+    txt(s, BX + 12, b1t + 16, "PHASE I  ·  the public record is made", {
+      "font-size": 11.5, "font-weight": 700, fill: "#7a6045", "letter-spacing": ".05em" });
+    txt(s, BX + 12, b2t + 16, "PHASE II  ·  the ecosystem reacts", {
+      "font-size": 11.5, "font-weight": 700, fill: "#7a6045", "letter-spacing": ".05em" });
+
+    for (let i = 0; i < N; i++) mkNode(s, CX, yOf(i), i, "right");
+
+    // Loop-back runs up a corridor left of the bands; both control points sit
+    // at x=26 so the curve never re-enters the band area.
+    el("path", { d: "M " + (BX - 4) + " " + (yOf(N - 1) + 18) + " C 26 " + (yOf(N - 1) + 18) +
+      ", 26 " + (yOf(0) - 18) + ", " + (BX - 4) + " " + (yOf(0) - 18),
+      fill: "none", stroke: "#a08868", "stroke-width": 1.5, "stroke-dasharray": "5 4",
+      "marker-end": "url(#rarrow)" }, s);
+    txt(s, 14, H - 22, "capital and regulatory effects land next round", {
+      "font-size": 11, fill: "#7a6045", "font-style": "italic" });
+    return s;
+  }
+
+  function show(i) {
+    cur = i;
+    const st = STEPS[i];
+    nodes.forEach(function (n, j) {
+      const on = j === i;
+      n.ring.setAttribute("opacity", on ? 1 : 0);
+      n.ring.setAttribute("r", on ? 23 : 17);
+      n.g.querySelector("circle").setAttribute("fill", on ? "#fff8ea" : "#f5ecda");
+      n.lbl.setAttribute("fill", on ? AC[STEPS[j].actor] : "#7a6045");
+      n.g.setAttribute("opacity", on ? 1 : .62);
+    });
+    document.getElementById("r-n").textContent = "Step " + st.n + " of 8  ·  Phase " + st.phase + "  ·  " + ANAME[st.actor];
+    document.getElementById("r-t").textContent = st.name;
+    document.getElementById("r-t").style.color = AC[st.actor];
+    document.getElementById("r-b").textContent = st.body;
+    document.getElementById("r-s").textContent = st.sees;
+  }
+  function hold(i) { playing = false; setBtn(); show(i); }
+  function setBtn() {
+    const b = document.getElementById("r-play");
+    b.textContent = playing ? "Pause" : "Play";
+    b.classList.toggle("on", playing);
+    // The timer exists only while playing. No autoplay on load, but Play plays.
+    if (playing && !timer) timer = setInterval(advance, 3400);
+    if (!playing && timer) { clearInterval(timer); timer = null; }
+  }
+  function advance() { show((cur + 1) % N); }
+  document.getElementById("r-play").addEventListener("click", function () {
+    playing = !playing; setBtn();
+  });
+  document.getElementById("r-step").addEventListener("click", function () {
+    playing = false; setBtn(); advance();
+  });
+
+  function relayout() {
+    if (NARROW.matches === narrow) return;
+    narrow = NARROW.matches;
+    build(); show(cur);
+  }
+  if (NARROW.addEventListener) NARROW.addEventListener("change", relayout);
+  else if (NARROW.addListener) NARROW.addListener(relayout);
+  window.addEventListener("resize", relayout, { passive: true });
+
+  build();
+  show(0); setBtn();
+  // no autoplay: the reader steps through with the button or the nodes
+})();
+
+/* ================= 4. VISIBILITY ================= */
+(function visibility() {
+  const ITEMS = [
+    { t: "Published benchmark scores", tier: "public", who: "*" },
+    { t: "Leaderboard ranks", tier: "public", who: "*" },
+    { t: "Market shares", tier: "public", who: "*" },
+    { t: "Incidents (severity, provider)", tier: "public", who: "*" },
+    { t: "Media headlines and sentiment", tier: "public", who: "*" },
+    { t: "Regulator interventions", tier: "public", who: "*" },
+    { t: "Provider press releases", tier: "public", who: "*" },
+    { t: "Own investment portfolio", tier: "private", who: "providers" },
+    { t: "Own beliefs about benchmark weights", tier: "private", who: "providers" },
+    { t: "Own noisy consumer-need signal", tier: "private", who: "providers" },
+    { t: "Benchmark internal validity estimate", tier: "private", who: "evaluator" },
+    { t: "Own risk beliefs and cooldowns", tier: "private", who: "regulator" },
+    { t: "Own investment thesis", tier: "private", who: "funders" },
+    { t: "Per-provider attention and narrative state", tier: "private", who: "media" },
+    { t: "Own experience of a provider", tier: "private", who: "consumers" },
+    { t: "True capability vectors", tier: "truth", who: "" },
+    { t: "Benchmark hidden dimension weights", tier: "truth", who: "" },
+    { t: "Holdout dimension weights", tier: "truth", who: "" },
+    { t: "True consumer satisfaction", tier: "truth", who: "" },
+    { t: "Consumer need weights", tier: "truth", who: "" },
+    { t: "Score reliability diagnostic", tier: "truth", who: "" }
+  ];
+  const ACTORS = [
+    { k: "providers", label: "Model Provider" },
+    { k: "evaluator", label: "Evaluator" },
+    { k: "consumers", label: "Consumer segment" },
+    { k: "regulator", label: "Regulator" },
+    { k: "funders", label: "Funder" },
+    { k: "media", label: "Media" },
+    { k: "__sim", label: "The simulation" }
+  ];
+  const grid = document.getElementById("v-grid");
+  const chips = document.getElementById("v-chips");
+  const cap = document.getElementById("v-cap");
+  let cur = "providers";
+
+  ITEMS.forEach(function (it) {
+    const d = document.createElement("div");
+    d.className = "vis-item tier-" + it.tier;
+    d.innerHTML = '<div class="vi-t"></div><div class="vi-s"></div>';
+    d.querySelector(".vi-t").textContent = it.t;
+    d.querySelector(".vi-s").textContent =
+      it.tier === "public" ? "public" : (it.tier === "private" ? "private · " + it.who : "ground truth");
+    grid.appendChild(d);
+    it._node = d;
+  });
+
+  function canSee(it, actor) {
+    if (actor === "__sim") return true;
+    if (it.tier === "truth") return false;
+    if (it.tier === "public") return true;
+    return it.who === actor;
+  }
+  function apply() {
+    let n = 0;
+    ITEMS.forEach(function (it) {
+      const ok = canSee(it, cur);
+      it._node.classList.toggle("hidden", !ok);
+      if (ok) n++;
+    });
+    const label = ACTORS.filter(function (a) { return a.k === cur; })[0].label;
+    cap.textContent = cur === "__sim"
+      ? "The simulation holds all " + ITEMS.length + " items. The gap between score and satisfaction can only be measured from here, so it is a quantity for researchers, never for actors."
+      : label + " reads " + n + " of " + ITEMS.length + " items. Everything blurred is out of reach: it never enters this actor's state or, in LLM mode, its prompt.";
+  }
+  ACTORS.forEach(function (a) {
+    const b = document.createElement("button");
+    b.className = "chip" + (a.k === cur ? " on" : "");
+    b.textContent = a.label;
+    b.addEventListener("click", function () {
+      cur = a.k;
+      Array.from(chips.children).forEach(function (c, i) { c.classList.toggle("on", ACTORS[i].k === cur); });
+      apply();
+    });
+    chips.appendChild(b);
+  });
+  apply();
+})();
+
+/* ================= 5. BELIEF CONVERGENCE ================= */
+(function beliefs() {
+  const host = document.getElementById("b-svg");
+  const cap = document.getElementById("b-cap");
+  const bench = D.benchmarks.filter(function (b) { return b.name === "Coding Evaluation"; })[0] || D.benchmarks[1];
+  const LR = 0.15, K = 3, ROUNDS = 34;
+  let mode = "public", raf = null;
+
+  // MAXW is the top of the bar scale, as a fraction of the track. Weights are
+  // shares summing to 1 across six dimensions, so a peaked benchmark tops out
+  // near 0.85; scaling to 0.90 keeps the largest bar just inside its track.
+  const MAXW = 0.90;
+  function run() {
+    if (raf) { clearInterval(raf); raf = null; }
+    host.innerHTML = "";
+
+    const trueW = norm(mode === "public" ? bench.w : (bench.hw || bench.w));
+    // Belief starts uniform: the provider knows nothing about which dimensions
+    // this benchmark rewards.
+    let belief = {}; DIMS.forEach(function (d) { belief[d] = 1 / DIMS.length; });
+    const cos0 = dot(belief, trueW) /
+      (Math.sqrt(dot(belief, belief)) * Math.sqrt(dot(trueW, trueW)) || 1);
+    // Spread in the capability vector is load-bearing, not decoration. Weights
+    // are normalized, so a FLAT capability vector yields the same predicted
+    // score for any normalized belief: the error is identically zero and
+    // nothing is ever learned. A specialized provider is what makes its own
+    // score informative about the hidden weights. Held fixed so the figure
+    // isolates the update rule from capability growth.
+    const cap0 = { reasoning: 0.58, coding: 0.74, knowledge: 0.41,
+                   safety: 0.36, communication: 0.45, agentic: 0.52 };
+
+    const head = document.createElement("div");
+    head.className = "mhead";
+    head.style.gridTemplateColumns = "108px 1fr 132px";
+    head.innerHTML = "<span></span><span>provider's inferred weights</span>" +
+      '<span style="color:#8a2f2b;text-align:left">' +
+      (mode === "public" ? "belief → true" : "belief → true holdout") + "</span>";
+    host.appendChild(head);
+
+    const rowHost = document.createElement("div");
+    rowHost.className = "rows";
+    host.appendChild(rowHost);
+
+    const rows = DIMS.map(function (d) {
+      const row = document.createElement("div");
+      row.className = "brow";
+
+      const lab = document.createElement("div");
+      lab.className = "blab"; lab.style.color = DIMC[d];
+      lab.textContent = D.dimLabel[d];
+
+      const track = document.createElement("div");
+      track.className = "btrack";
+      const fill = document.createElement("div");
+      fill.className = "bfill";
+      fill.style.background = DIMC[d]; fill.style.opacity = ".9";
+      const mark = document.createElement("div");
+      mark.className = "bmark";
+      mark.style.left = Math.min(100, trueW[d] / MAXW * 100).toFixed(2) + "%";
+      mark.title = "true weight " + trueW[d].toFixed(3);
+      track.appendChild(fill); track.appendChild(mark);
+
+      const val = document.createElement("div");
+      val.className = "bval";
+
+      row.appendChild(lab); row.appendChild(track); row.appendChild(val);
+      rowHost.appendChild(row);
+      return { fill: fill, val: val, d: d };
+    });
+
+    const foot = document.createElement("div");
+    foot.className = "bfoot";
+    const rlbl = document.createElement("div"); rlbl.className = "bft";
+    const bar = document.createElement("div"); bar.className = "bprog";
+    const prog = document.createElement("i"); bar.appendChild(prog);
+    const errlbl = document.createElement("div");
+    errlbl.className = "bfs"; errlbl.style.flexBasis = "100%";
+    foot.appendChild(rlbl); foot.appendChild(bar); foot.appendChild(errlbl);
+    host.appendChild(foot);
+
+    let r = 0, publications = 0, observed = null;
+    // Seeded noise (same seed every replay, so the two modes are comparable).
+    // Without it, a frozen score equals a fresh one for a fixed capability and
+    // the two modes would converge identically. In the sim, scores are noisy
+    // draws; freezing means re-consuming ONE noisy reading for K rounds
+    // instead of averaging K fresh ones. That is the mechanism.
+    let seed = 42;
+    function rnd() { seed = (seed * 1664525 + 1013904223) % 4294967296; return seed / 4294967296; }
+    function noise() { return (rnd() + rnd() + rnd() - 1.5) * 0.08; }
+    function stepOnce() {
+      // The observed score refreshes only on publish rounds; between
+      // publications the evaluator returns the frozen last-published score.
+      const publishes = mode === "public" ? true : (r % K === 0);
+      if (publishes) { publications++; observed = dot(cap0, trueW) + noise(); }
+      // The delta rule fires every round, against that possibly stale value.
+      if (observed !== null) {
+        const predicted = dot(cap0, belief);
+        const err = observed - predicted;
+        DIMS.forEach(function (d) { belief[d] = Math.max(0, belief[d] + LR * err * cap0[d]); });
+        belief = norm(belief);
+      }
+      r++;
+    }
+    function draw() {
+      rows.forEach(function (row) {
+        row.fill.style.width = Math.max(0, Math.min(100, belief[row.d] / MAXW * 100)).toFixed(2) + "%";
+        row.val.textContent = belief[row.d].toFixed(3) + " → " + trueW[row.d].toFixed(3);
+      });
+      // Cosine, not absolute error. The implemented rule renormalizes the
+      // belief after every update, which absorbs most of the step's magnitude,
+      // so what actually moves is the belief's DIRECTION. Cosine is scale-free
+      // and is the honest readout of "has the provider worked out the shape of
+      // this benchmark".
+      const cs = dot(belief, trueW) /
+        (Math.sqrt(dot(belief, belief)) * Math.sqrt(dot(trueW, trueW)) || 1);
+      rlbl.textContent = "round " + Math.min(r, ROUNDS) + " of " + ROUNDS +
+        (mode === "private" ? " · publishes every 3rd round" : " · publishes every round");
+      errlbl.textContent = "alignment with the true weights: " + cos0.toFixed(3) +
+        " → " + cs.toFixed(3) + "   ·   " + publications + " score publications so far";
+      prog.style.width = (100 * Math.min(1, r / ROUNDS)).toFixed(1) + "%";
+    }
+    draw();
+
+    if (REDUCED) {
+      while (r < ROUNDS) stepOnce();
+      draw();
+    } else {
+      raf = setInterval(function () {
+        if (r >= ROUNDS) { clearInterval(raf); raf = null; return; }
+        stepOnce(); draw();
+      }, 130);
+    }
+
+    cap.textContent = mode === "public"
+      ? "A public benchmark publishes a fresh, noisy score every round, so each correction carries new information and the noise averages out. The bars never land exactly on the markers: one noisy score per round is a thin signal about six weights."
+      : "A private holdout publishes a score only every third round. The provider still corrects every round, but between publications it reuses the same stale, noisy reading, so it chases one wobble for three rounds. It is also aiming at the holdout's weights, which differ from the public ones. Aiming gets slower and coarser, but it never stops. The alignment numbers are not comparable across the two modes: the holdout weights are more evenly spread, so an initial even guess starts closer to them.";
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll("[data-bmode]"), function (b) {
+    b.addEventListener("click", function () {
+      Array.prototype.forEach.call(document.querySelectorAll("[data-bmode]"), function (x) {
+        x.classList.remove("on"); });
+      b.classList.add("on");
+      mode = b.getAttribute("data-bmode");
+      run();
+    });
+  });
+  document.getElementById("b-replay").addEventListener("click", run);
+  run();
+})();
+
+/* ================= 6. THREE CHANNELS ================= */
+(function channels() {
+  // Plain HTML cards. This was SVG with a hand-rolled word-wrapper that
+  // estimated glyph widths from a character count; the browser does that job
+  // correctly and reflows the cards for free.
+  const host = document.getElementById("h-svg");
+  // 0.95 is the CONDITION TARGET (run_experiment.py _scale_cdw: "partial target
+  // cos~0.95"), which the caption above summarises. The realized mean over
+  // the shipped 22-benchmark pool is 0.977, range 0.941 to 0.989: a different
+  // quantity. Printing the realized mean here read as a contradiction of the
+  // caption, so both now state the target. Do not "fix" this back to meanCos.
+  const CH = [
+    { t: "1 · Weight distance", c: "#8a2f2b",
+      b: "The holdout measures a slightly different slice of the same capability space, so effort aimed at the visible weights lands off-target.",
+      n: "Set per condition alongside h: partial benchmarks keep their hand-tuned holdout weights (about 0.95 similarity to the public weights), private benchmarks double the distance (about 0.85), and the iid ablation makes holdout and public weights identical." },
+    { t: "2 · Reporting lag", c: "#5c3a78",
+      b: "Scores publish every K = 3 rounds. Between publications the provider, and the market, are working from stale numbers.",
+      n: 'Anchored to release cadence across 24 benchmarks and 8 frontier labs, 2023 to 2026 (<a class="cite" href="https://epoch.ai/benchmarks" target="_blank" rel="noopener">Epoch AI</a>).' },
+    { t: "3 · Observation noise", c: "#b05f14",
+      b: "The score is computed only on the held-out share h of items, so a smaller holdout gives a noisier score.",
+      n: "Conditions set h at 0, 0.3, or 1.0, alongside the weight distance in channel 1." }
+  ];
+  const wrap = document.createElement("div");
+  wrap.className = "chcards";
+  CH.forEach(function (ch) {
+    const card = document.createElement("div");
+    card.className = "chcard";
+    card.style.borderColor = ch.c;
+    const t = document.createElement("div");
+    t.className = "cht"; t.style.color = ch.c; t.textContent = ch.t;
+    const b = document.createElement("div");
+    b.className = "chb"; b.textContent = ch.b;
+    const n = document.createElement("div");
+    // innerHTML, not textContent: the channel notes carry a citation link
+    n.className = "chn"; n.innerHTML = ch.n;
+    card.appendChild(t); card.appendChild(b); card.appendChild(n);
+    wrap.appendChild(card);
+  });
+  host.appendChild(wrap);
+})();
+
+/* ================= rail scroll-spy ================= */
+(function rail() {
+  const links = Array.prototype.slice.call(document.querySelectorAll("#rail a"));
+  const secs = links.map(function (a) { return document.querySelector(a.getAttribute("href")); });
+  function upd() {
+    let idx = 0;
+    secs.forEach(function (sec, i) {
+      if (sec && sec.getBoundingClientRect().top <= 160) idx = i;
+    });
+    links.forEach(function (a, i) { a.classList.toggle("on", i === idx); });
+  }
+  window.addEventListener("scroll", upd, { passive: true });
+  window.addEventListener("resize", upd, { passive: true });
+  // Backstop poll. Some embedding contexts do not emit scroll events for
+  // programmatic scrolling, which silently freezes the highlight on section 1.
+  setInterval(upd, 250);
+  upd();
+})();
+
+})();
+</script>
+</body>
+</html>

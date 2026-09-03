@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Run Viewer · AI Evaluation Ecosystem Explorer</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&display=swap" rel="stylesheet">
+<script src="js/vendor/d3.v7.min.js"></script>
+<script src="js/loader.js?v=1"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:#f0e6d3;color:#2a1a0e;font-family:'Inter',system-ui,sans-serif;
+     height:100vh;display:flex;flex-direction:column;overflow:hidden;user-select:none}
+#trace-panel, #tp-text { user-select: text; }
+:is(a, button, select, input, [tabindex]):focus-visible { outline: 2px solid #3d5a8a; outline-offset: 2px; }
+@media (max-height: 560px) { body { min-height: 100vh; height: auto; overflow: auto; } }
+@media (max-width: 720px) { .chip { min-height: 24px; padding-top: 5px; padding-bottom: 5px; } }
+
+/* HEADER */
+#hdr{height:54px;background:#e8d9c2;border-bottom:1px solid #c8b498;
+     display:flex;align-items:center;padding:0 20px;gap:16px;flex-shrink:0}
+#hdr-title{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#7a6045;text-decoration:none}
+#hdr-title:hover{color:#2a1a0e}
+#hdr-run{font-size:11px;color:#7a6045;border-left:1px solid #c8b498;padding-left:14px;
+         max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#hdr-round{margin-left:auto;font-size:24px;font-weight:700;color:#2a1a0e;
+           font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+#hdr-round span{font-size:13px;font-weight:400;color:#7a6045;margin-left:4px}
+#controls{display:flex;align-items:center;gap:6px;margin-left:8px}
+.cbtn{background:#d8c9b0;border:1px solid #c0ad94;color:#5a4030;width:30px;height:30px;
+      border-radius:6px;cursor:pointer;font-size:12px;display:flex;align-items:center;
+      justify-content:center;transition:background .15s,color .15s;line-height:1}
+.cbtn:hover{background:#c8b89a;color:#2a1a0e}
+.cbtn.on{background:#3d5a8a;border-color:#2d4a7a;color:#f0e6d3}
+#speed{background:#d8c9b0;border:1px solid #c0ad94;color:#5a4030;padding:0 8px;
+       border-radius:6px;font-size:11px;cursor:pointer;height:30px;font-family:inherit}
+
+/* MAIN */
+#main{display:flex;flex:1;overflow:hidden;min-height:0}
+
+/* LEFT — orb panel + newspaper */
+#orb-panel{width:55%;display:flex;flex-direction:column;border-right:1px solid #c8b498;min-width:0}
+#orb-top{display:flex;align-items:center;justify-content:space-between;
+         padding:8px 18px 3px;flex-shrink:0}
+#orb-lbl{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#7a6045}
+#orb-legend{display:flex;gap:8px;align-items:center}
+.leg-prefix{font-size:9px;color:#7a6045;font-weight:600;letter-spacing:.05em;white-space:nowrap;margin-right:2px}
+.leg-item{display:flex;align-items:center;gap:5px;font-size:10px;color:#7a6045}
+.leg-dot{width:8px;height:8px;border-radius:50%}
+#orb-svg-wrap{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;padding:0 6px 2px;position:relative;overflow:hidden}
+#orb-svg{width:100%;height:100%}
+#trace-panel{position:absolute;left:0;right:0;bottom:0;height:220px;
+             background:rgba(240,230,211,.97);border-top:2px solid #c8b498;
+             padding:10px 16px 10px;transform:translateY(100%);
+             transition:transform .28s cubic-bezier(.2,.8,.3,1);z-index:10;
+             display:flex;flex-direction:column;gap:6px;overflow-y:auto}
+#trace-panel.open{transform:translateY(0)}
+#tp-hdr{display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+#tp-name{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+#tp-close{background:none;border:none;cursor:pointer;font-size:18px;color:#a08868;
+          padding:0;line-height:1;font-family:inherit;margin-left:8px}
+#tp-close:hover{color:#2a1a0e}
+#tp-text{font-size:10.5px;line-height:1.6;color:#5a4030}
+.orb-hit{cursor:pointer}
+
+/* SEGMENT LEGEND */
+#seg-legend{display:flex;gap:10px;padding:2px 14px 3px;flex-shrink:0;flex-wrap:wrap}
+.seg-leg{display:flex;align-items:center;gap:4px;font-size:9px;color:#7a6045}
+.seg-leg-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+
+/* NEWSPAPER */
+#newspaper{height:168px;flex-shrink:0;background:#e2d5b8;
+           border-top:3px solid #2a1a0e;overflow:hidden;display:flex;flex-direction:column;
+           transform:rotate(-0.3deg);transform-origin:center bottom;
+           box-shadow:0 3px 10px rgba(42,26,14,.15)}
+#np-masthead{display:flex;flex-direction:column;flex-shrink:0}
+.np-hrule{height:1px;background:#2a1a0e;margin:0 12px}
+#np-nameplate{text-align:center;padding:3px 14px 2px}
+#np-name{font-family:'Playfair Display',Georgia,serif;font-size:15px;font-weight:900;
+         letter-spacing:.16em;text-transform:uppercase;color:#2a1a0e}
+#np-tagline{font-family:Georgia,'Times New Roman',serif;font-size:7.5px;font-style:italic;
+            letter-spacing:.1em;text-transform:uppercase;color:#7a6045;margin-top:1px}
+#np-metarow{display:flex;align-items:center;justify-content:space-between;
+            padding:2px 12px 2px;border-bottom:1px solid #2a1a0e}
+#np-edition{font-family:Georgia,serif;font-size:8px;font-style:italic;color:#5a4030}
+#np-ticker{display:flex;gap:0;align-items:center;font-size:7.5px;
+           font-family:'Courier New',monospace;overflow:hidden;max-width:60%}
+.tick-item{font-weight:600;white-space:nowrap}
+.tick-sep{color:#b0a080;margin:0 4px}
+#np-cols{flex:1;display:flex;overflow:hidden}
+.np-col{flex:1;padding:4px 13px 4px 13px;overflow:hidden;display:flex;flex-direction:column;gap:3px}
+.np-hl-main{font-family:'Playfair Display',Georgia,serif;font-size:13px;font-weight:700;
+            color:#1a0e06;line-height:1.28;
+            display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.np-hl-sub{font-family:'Playfair Display',Georgia,serif;font-size:10px;font-weight:600;
+           color:#2a1810;line-height:1.3;
+           display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+.np-subdiv{height:1px;background:#c8b898;flex-shrink:0}
+.np-quiet{font-family:'Playfair Display',Georgia,serif;font-size:10px;
+          font-style:italic;color:#8a7055}
+
+/* RIGHT — charts */
+#chart-panel{width:45%;display:flex;flex-direction:column;min-width:0}
+.csec{flex:1;display:flex;flex-direction:column;padding:10px 14px 6px;
+      border-bottom:1px solid #c8b498;min-height:0}
+.csec:last-child{border-bottom:none}
+.clbl{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+      color:#7a6045;margin-bottom:4px;flex-shrink:0}
+.cwrap{flex:1;min-height:0;position:relative}
+.cwrap svg{width:100%;height:100%;display:block;overflow:visible}
+
+/* FOOTER */
+#ftr{height:80px;background:#e8d9c2;border-top:1px solid #c8b498;
+     display:flex;flex-direction:column;justify-content:center;padding:8px 20px;gap:6px;flex-shrink:0}
+#evt-log{display:flex;gap:6px;align-items:center;overflow-x:auto;
+         scrollbar-width:none;font-size:10px;min-height:22px}
+#evt-log::-webkit-scrollbar{display:none}
+#evt-intro{color:#7a6045;flex-shrink:0;font-size:10px}
+.chip{display:flex;align-items:center;gap:5px;padding:3px 10px;border-radius:12px;
+      white-space:nowrap;flex-shrink:0;animation:fadeSlide .35s ease;font-size:10px}
+@keyframes fadeSlide{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:none}}
+.chip.reg     {background:#d4e2f0;color:#1a3a6a;border:1px solid #8aaad4;cursor:pointer}
+.chip.reg:hover{border-color:#3d5a8a;background:#c4d8f0}
+.chip.incident{background:#f0e0c8;color:#6a2a0a;border:1px solid #c46a3c}
+.chip-rnd{font-weight:700;opacity:.55}
+.inc-ring{fill:none;stroke:#c46a3c;stroke-width:2;pointer-events:none;
+          transform-box:fill-box;transform-origin:center;opacity:0}
+.inc-ring.flash{animation:inc-flash 1.4s ease-out forwards}
+@keyframes inc-flash{
+  0%  {transform:scale(1);   opacity:.85}
+  100%{transform:scale(1.55);opacity:0}
+}
+#scrub-row{display:flex;align-items:center;gap:10px}
+#scrubber{flex:1;-webkit-appearance:none;appearance:none;height:3px;
+          background:#c8b498;border-radius:2px;cursor:pointer}
+#scrubber::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;
+  border-radius:50%;background:#3d5a8a;cursor:pointer;box-shadow:0 0 0 3px rgba(61,90,138,.2)}
+#scrubber::-moz-range-thumb{width:12px;height:12px;border-radius:50%;
+  background:#3d5a8a;border:none;cursor:pointer}
+#scrub-lbl{font-size:10px;color:#7a6045;font-variant-numeric:tabular-nums;min-width:52px;text-align:right}
+/* SPOTLIGHT TOUR */
+#spotlight-overlay{position:fixed;inset:0;z-index:100;display:none}
+#spotlight-overlay.active{display:block}
+#spotlight-svg{position:fixed;inset:0;width:100%;height:100%;pointer-events:none}
+.spot-label{position:fixed;background:#f0e6d3;border:1.5px solid #c8b498;border-radius:6px;
+  padding:9px 11px;max-width:210px;font-size:10px;line-height:1.55;color:#2a1a0e;
+  box-shadow:0 4px 18px rgba(42,26,14,.22);pointer-events:none}
+.spot-label b{color:#2a1a0e}
+.spot-label .slbl-head{font-size:8.5px;font-weight:700;letter-spacing:.09em;
+  text-transform:uppercase;color:#7a6045;margin-bottom:4px}
+#spot-dismiss{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  background:#3d5a8a;color:#f0e6d3;border:none;border-radius:4px;padding:8px 30px;
+  font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
+  cursor:pointer;font-family:inherit;z-index:101;
+  box-shadow:0 4px 16px rgba(42,26,14,.3)}
+#spot-dismiss:hover{background:#2a3d5a}
+#guide-btn{background:none;border:1px solid #c8b498;border-radius:50%;width:22px;height:22px;
+  font-size:10px;cursor:pointer;color:#7a6045;font-family:inherit;line-height:1;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:6px}
+#guide-btn:hover{background:#e2d5b8;color:#5a4030}
+#hdr-back{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#7a6045;text-decoration:none;border:1px solid #c8b498;border-radius:4px;padding:3px 10px;margin-right:4px;white-space:nowrap}#hdr-back:hover{color:#2a1a0e;border-color:#a08868}.hdr-context{font-size:11px;color:#3d5a8a;text-decoration:none;font-weight:600;letter-spacing:.04em;white-space:nowrap}.hdr-context:hover{color:#2a1a0e}#viewer-loading{position:fixed;inset:0;background:#f0e6d3;display:flex;align-items:center;justify-content:center;z-index:200;font-size:12px;color:#7a6045;font-family:inherit;letter-spacing:.04em}</style>
+</head>
+<body>
+
+<div id="viewer-loading">Loading run…</div>
+<div id="spotlight-overlay"></div>
+
+<div id="hdr">
+  <a id="hdr-title" href="index.html">The AI Evaluation Ecosystem</a>
+  <a id="hdr-back" href="explorer.html">← Explorer</a><div id="hdr-run"></div>
+  <a class="hdr-context" href="index.html">Ecosystem</a>
+  <a class="hdr-context" href="simulation.html">Simulation</a>
+  <div id="hdr-round">Round <span id="rnum">0</span><span id="rtot"></span></div>
+  <div id="controls">
+    <button class="cbtn" id="btn-restart" title="Restart" aria-label="Restart from round 0">&#10226;</button>
+    <button class="cbtn" id="btn-prev" title="Previous" aria-label="Previous round">&#9664;</button>
+    <button class="cbtn" id="btn-play" title="Play / Pause" aria-label="Play">&#9654;</button>
+    <button class="cbtn" id="btn-next" title="Next" aria-label="Next round">&#9654;&#9474;</button>
+    <select id="speed" aria-label="Playback speed">
+      <option value="1800">0.5&times;</option>
+      <option value="1200" selected>1&times;</option>
+      <option value="600">2&times;</option>
+      <option value="250">4&times;</option>
+    </select>
+    <button id="guide-btn" title="How to read this" aria-label="How to read this page">?</button>
+  </div>
+</div>
+
+<div id="main">
+  <div id="orb-panel">
+    <div id="orb-top">
+      <div id="orb-lbl">Providers &middot; size = market share</div>
+      <div id="orb-legend">
+        <span class="leg-prefix">Portfolio split:</span>
+        <svg viewBox="-14 -14 28 28" width="24" height="24" style="vertical-align:middle;flex-shrink:0">
+          <path d="M 0,-10 A 10,10 0 0,1 8.66,5 L 5.196,3 A 6,6 0 0,0 0,-6 Z" fill="#5a7aa8" stroke="#f0e6d3" stroke-width="1"/>
+          <path d="M 8.66,5 A 10,10 0 0,1 -8.66,5 L -5.196,3 A 6,6 0 0,0 5.196,3 Z" fill="#5a9a72" stroke="#f0e6d3" stroke-width="1"/>
+          <path d="M -8.66,5 A 10,10 0 0,1 0,-10 L 0,-6 A 6,6 0 0,0 -5.196,3 Z" fill="#c47a3c" stroke="#f0e6d3" stroke-width="1"/>
+        </svg>
+        <div class="leg-item"><div class="leg-dot" style="background:#5a7aa8"></div>R&amp;D</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#5a9a72"></div>Safety</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#c47a3c"></div>Product</div>
+      </div>
+    </div>
+    <div id="orb-svg-wrap">
+      <svg id="orb-svg" viewBox="0 0 540 330" preserveAspectRatio="xMidYMid meet"></svg>
+      <div id="trace-panel">
+        <div id="tp-hdr">
+          <div id="tp-name"></div>
+          <button id="tp-close" aria-label="Close reasoning panel">&#215;</button>
+        </div>
+        <div id="tp-text"></div>
+      </div>
+    </div>
+    <div id="seg-legend"></div>
+    <div id="newspaper">
+      <div id="np-masthead">
+        <div class="np-hrule"></div>
+        <div id="np-nameplate">
+          <div id="np-name">The Eval Times</div>
+          <div id="np-tagline">All the simulation that&rsquo;s fit to print</div>
+        </div>
+        <div class="np-hrule"></div>
+        <div id="np-metarow">
+          <span id="np-edition">Vol. I &middot; Round 0</span>
+          <div id="np-ticker"></div>
+        </div>
+      </div>
+      <div id="np-cols">
+        <div class="np-col" id="np-col1"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="chart-panel">
+    <div class="csec">
+      <div class="clbl">Market Share</div>
+      <div class="cwrap" id="share-wrap"></div>
+    </div>
+    <div class="csec">
+      <div class="clbl">Score &minus; Satisfaction Gap</div>
+      <div class="cwrap" id="gap-wrap"></div>
+    </div>
+  </div>
+</div>
+
+<div id="ftr">
+  <div id="evt-log"><span id="evt-intro">Events &middot;</span></div>
+  <div id="scrub-row">
+    <input type="range" id="scrubber" min="0" value="0" aria-label="Round">
+    <div id="scrub-lbl">0 / 0</div>
+  </div>
+</div>
+
+<script type="module">
+const _p   = new URLSearchParams(location.search);
+const _run = _p.get('run') || '';
+if (!_run) {
+  document.getElementById('viewer-loading').innerHTML =
+    'No run was selected. <a href="explorer.html">Choose one in the explorer</a>.';
+  throw new Error('no run param');
+}
+/* Path is <bucket>/llm/<model>/<cond>/seed_N or <bucket>/heuristic/<cond>/seed_N */
+const _parts       = _run.split('/').filter(Boolean);
+const _isHeuristic = _parts[1] !== 'llm';
+const _runModel    = _isHeuristic ? null : _parts[2];
+const _runCond     = _parts[_parts.length - 2] || '';
+const _runSeed     = (_parts[_parts.length - 1] || '').replace('seed_', '');
+const _MODEL_LABELS = {
+  'claude-sonnet-4-6': 'Sonnet 4.6', 'claude-opus-4-6': 'Opus 4.6',
+  'gpt-5.5-2026-04-23': 'GPT-5.5',
+};
+const _modelLabel = _isHeuristic ? 'Heuristic' : (_MODEL_LABELS[_runModel] || _runModel);
+const _condLabel  = _runCond.replace(/__/g, ' · ').replace(/_/g, ' ');
+// the header used to print raw path segments ("s5_aligned_private_only /
+// seed_42"); show the same words without the file-path shape
+document.getElementById('hdr-run').textContent =
+  _condLabel + ' · seed ' + _runSeed + ' · ' + _modelLabel;
+document.title = _condLabel + ' seed ' + _runSeed + ' · Run Viewer';
+let SIM;
+try {
+  SIM = await Evaluarium.loadRun(_run);
+} catch (e) {
+  // visitor copy only; the run path and status code stay in the console
+  document.getElementById('viewer-loading').innerHTML =
+    'This run could not be loaded. Please try again, or <a href="explorer.html">go back to the explorer</a>.';
+  console.error('run load failed:', _run, e);
+  throw e;
+}
+document.getElementById('viewer-loading').style.display = 'none';
+const providers = SIM.providers;
+const colors    = SIM.colors;
+const frames    = SIM.frames;
+const N         = SIM.n;
+const DOT_CATS       = SIM.dot_cats;
+const DOT_ENTERPRISE = SIM.dot_enterprise;
+const N_DOTS         = DOT_CATS.length;
+
+const GRID = [
+  [90,  104], [270, 104], [450, 104],
+  [90,  238], [270, 238], [450, 238],
+];
+const SEG_CLR = ["#5a7aa8", "#5a9a72", "#c47a3c"];
+const MAX_R   = 56;
+
+
+const CATEGORY_META = {
+  tech:         { color:"#3d5a8a", label:"Tech" },
+  professional: { color:"#3d7a5a", label:"Professional" },
+  health:       { color:"#8a3a3a", label:"Health & Gov" },
+  consumer:     { color:"#8a5a7a", label:"Consumer" },
+  research:     { color:"#c46a3c", label:"Research" },
+};
+
+let cur     = 0;
+let playing = false;
+let timer   = null;
+let delay   = 1200;
+
+const REDUCED_MOTION = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+let activeTrace  = null;
+let traceWasPlay = false;
+
+function updateTraceContent(prov, pIdx) {
+  const raw  = ((frames[cur].traces || {})[prov] || "").trim();
+  const fallback = _isHeuristic
+    ? "Heuristic run: this provider follows fixed decision rules, so there is no reasoning text."
+    : "No reasoning recorded this round.";
+  document.getElementById("tp-name").textContent = prov;
+  document.getElementById("tp-name").style.color = colors[pIdx];
+  document.getElementById("tp-text").textContent = raw || fallback;
+}
+
+function showTrace(prov, pIdx) {
+  updateTraceContent(prov, pIdx);
+  document.getElementById("trace-panel").classList.add("open");
+  if (activeTrace !== prov) {
+    if (playing) { traceWasPlay = true; stopPlay(); }
+    activeTrace = prov;
+  }
+}
+
+function dismissTrace() {
+  document.getElementById("trace-panel").classList.remove("open");
+  activeTrace = null;
+  if (traceWasPlay) { traceWasPlay = false; startPlay(); }
+}
+
+function toggleTrace(prov, pIdx) {
+  activeTrace === prov ? dismissTrace() : showTrace(prov, pIdx);
+}
+
+function showRegTrace(text, round) {
+  document.getElementById("tp-name").textContent = "Regulator · Round " + round;
+  document.getElementById("tp-name").style.color = "#5a4030";
+  document.getElementById("tp-text").textContent = text || "No reasoning recorded.";
+  document.getElementById("trace-panel").classList.add("open");
+  if (activeTrace !== "REGULATOR") {
+    if (playing) { traceWasPlay = true; stopPlay(); }
+    activeTrace = "REGULATOR";
+  }
+}
+
+document.getElementById("rtot").textContent = " / " + (N - 1);
+document.getElementById("scrubber").max = N - 1;
+
+/* ---- Derived series ---- */
+
+const shareMatrix = frames.map(f => providers.map(p => f.shares[p] || 0));
+const gapMatrix   = frames.map(f => providers.map(p => (f.scores[p] || 0) - (f.sat[p] || 0)));
+
+/* ---- Rank helpers ---- */
+
+function getRanks(scores) {
+  const sorted = providers.slice().sort((a, b) => (scores[b] || 0) - (scores[a] || 0));
+  const out = {};
+  sorted.forEach((p, i) => { out[p] = i + 1; });
+  return out;
+}
+
+/* ---- Dot offsets (golden angle, fixed per dot index) ---- */
+
+const DOT_OFFSETS = Array.from({length: N_DOTS}, (_, i) => {
+  const angle = ((i * 137.508) % 360) * Math.PI / 180;
+  const r     = 62 + (i % 5) * 5;
+  return [r * Math.cos(angle), r * Math.sin(angle)];
+});
+
+/* ---- ORB SVG ---- */
+
+const orbSVG = d3.select("#orb-svg");
+
+const defs = orbSVG.append("defs");
+providers.forEach((p, i) => {
+  const f = defs.append("filter")
+    .attr("id","ds"+i).attr("x","-20%").attr("y","-20%")
+    .attr("width","140%").attr("height","140%");
+  f.append("feDropShadow").attr("dx",0).attr("dy",2).attr("stdDeviation",4)
+   .attr("flood-color","rgba(42,26,14,.14)");
+});
+
+const dotLayer = orbSVG.append("g").attr("class","dot-layer");
+const orbLayer = orbSVG.append("g").attr("class","orb-layer");
+
+const dotSymCircle = d3.symbol().type(d3.symbolCircle).size(14);
+const dotSymSquare = d3.symbol().type(d3.symbolSquare).size(22);
+
+const dots = dotLayer.selectAll(".cdot")
+  .data(d3.range(N_DOTS)).join("path")
+  .attr("class","cdot")
+  .attr("d", i => DOT_ENTERPRISE[i] ? dotSymSquare() : dotSymCircle())
+  .attr("transform","translate(-200,-200)")
+  .attr("opacity",.75)
+  .attr("stroke","rgba(42,26,14,.18)").attr("stroke-width",.5);
+
+const orbs = orbLayer.selectAll(".orb")
+  .data(providers).join("g")
+  .attr("class","orb")
+  .attr("transform",(d,i) => `translate(${GRID[i][0]},${GRID[i][1]})`);
+
+orbs.each(function(prov, i) {
+  const g = d3.select(this);
+  const c = colors[i];
+  const bx = -MAX_R * 0.86, by = -MAX_R * 0.98;
+
+  g.append("circle").attr("class","o-bg").attr("r",MAX_R)
+   .attr("fill",c).attr("opacity",.18)
+   .attr("stroke",c).attr("stroke-width",1.5).attr("stroke-opacity",.45)
+   .attr("filter",`url(#ds${i})`);
+  ["o-rd","o-saf","o-prd"].forEach(cls => g.append("path").attr("class",cls).attr("fill","none"));
+  g.append("circle").attr("class","o-inner").attr("r",MAX_R*0.62).attr("fill",c).attr("opacity",.14);
+
+  const shortName = prov.replace(" Labs","").replace(" AI","").replace(" Systems","");
+  g.append("text").attr("class","o-name").attr("text-anchor","middle").attr("dy","-11")
+   .attr("font-size","9.5").attr("font-weight","500").attr("fill","#7a6045").attr("letter-spacing",".05em")
+   .text(shortName);
+  g.append("text").attr("class","o-score-lbl").attr("text-anchor","middle").attr("dy","-3")
+   .attr("font-size","6.5").attr("font-weight","600").attr("fill","#7a6045")
+   .attr("letter-spacing",".06em").attr("text-transform","uppercase").text("score");
+  g.append("text").attr("class","o-score").attr("text-anchor","middle").attr("dy","9")
+   .attr("font-size","14").attr("font-weight","700").attr("fill","#2a1a0e");
+  g.append("text").attr("class","o-share").attr("text-anchor","middle").attr("dy","23")
+   .attr("font-size","9").attr("fill","#7a6045");
+
+  g.append("rect").attr("class","o-rank-bg")
+   .attr("x",bx-10).attr("y",by-8).attr("width",36).attr("height",14).attr("rx",3)
+   .attr("fill","rgba(232,217,194,.88)").attr("stroke","#c8b498").attr("stroke-width",".6");
+  g.append("text").attr("class","o-rank-num").attr("x",bx).attr("y",by+2)
+   .attr("text-anchor","start").attr("font-size","9").attr("font-weight","700").attr("fill","#7a6045");
+  g.append("text").attr("class","o-delta").attr("x",bx+18).attr("y",by+2)
+   .attr("text-anchor","start").attr("font-size","8.5").attr("font-weight","700").attr("fill","#7a6045");
+
+  g.append("circle").attr("class","inc-ring").attr("r", MAX_R + 10).attr("opacity", 0);
+
+  g.append("circle").attr("class","orb-hit").attr("r", MAX_R * 1.35)
+   .attr("fill","transparent")
+   .attr("tabindex", 0).attr("role", "button")
+   .attr("aria-label", prov + ": open reasoning")
+   .on("click", function(event) { event.stopPropagation(); toggleTrace(prov, i); })
+   .on("keydown", function(event) {
+     if (event.key === "Enter" || event.key === " ") {
+       event.preventDefault(); event.stopPropagation(); toggleTrace(prov, i);
+     }
+   });
+});
+
+const arcGen = d3.arc();
+
+function rScale(share) {
+  const base = 1 / providers.length;
+  return Math.max(28, Math.min(MAX_R, 28 + (MAX_R - 28) * (share / (base * 2.2))));
+}
+
+function updateOrbs(frame, r) {
+  const td = Math.min(delay * 0.75, 900);
+  const t  = d3.transition().duration(td).ease(d3.easeCubicInOut);
+  const currRanks = getRanks(frame.scores);
+  const prevRanks = r > 0 ? getRanks(frames[r-1].scores) : currRanks;
+
+  orbs.each(function(prov) {
+    const g   = d3.select(this);
+    const r_  = rScale(frame.shares[prov] || 0);
+    const seg = frame.portfolio[prov] || { rd:.6, safety:.2, product:.2 };
+    g.select(".o-bg").transition(t).attr("r",r_);
+    g.select(".o-inner").transition(t).attr("r",r_*0.62);
+    const vals = [seg.rd||0, seg.safety||0, seg.product||0];
+    let a0 = -Math.PI/2;
+    [".o-rd",".o-saf",".o-prd"].forEach((cls,j) => {
+      const a1     = a0 + vals[j]*2*Math.PI;
+      const next   = {innerRadius:r_-7, outerRadius:r_, startAngle:a0, endAngle:a1};
+      const node   = g.select(cls).node();
+      const prev   = node._arc || next;
+      node._arc    = next;
+      g.select(cls).attr("fill",SEG_CLR[j]).attr("opacity",.9)
+       .transition(t)
+       .attrTween("d", () => { const interp=d3.interpolate(prev,next); return tt=>arcGen(interp(tt)); });
+      a0 = a1;
+    });
+    g.select(".o-score").text((frame.scores[prov]||0).toFixed(3));
+    g.select(".o-share").text(((frame.shares[prov]||0)*100).toFixed(1)+"%");
+    const rank  = currRanks[prov];
+    const delta = prevRanks[prov] - rank;
+    g.select(".o-rank-num").text("#"+rank).attr("fill", rank===1 ? "#8a5a2a" : "#7a6045");
+    if (delta > 0)      g.select(".o-delta").text("▲"+delta).attr("fill","#3d7a5a");
+    else if (delta < 0) g.select(".o-delta").text("▼"+Math.abs(delta)).attr("fill","#8a3a3a");
+    else                g.select(".o-delta").text("").attr("fill","#7a6045");
+
+    if ((frame.incidents || {})[prov]) {
+      if (REDUCED_MOTION) {
+        g.select(".inc-ring").style("opacity", .85);
+      } else {
+        const ring = g.select(".inc-ring").node();
+        ring.classList.remove("flash");
+        void ring.offsetWidth;
+        ring.classList.add("flash");
+      }
+    } else if (REDUCED_MOTION) {
+      g.select(".inc-ring").style("opacity", 0);
+    }
+  });
+}
+
+/* ---- Consumer dots ---- */
+
+function updateDots(frame) {
+  const td   = Math.min(delay * 0.75, 900);
+  const t    = d3.transition().duration(td).ease(d3.easeCubicInOut);
+  const provs = frame.dot_provs;
+
+  dots.each(function(i) {
+    const pIdx = provs[i];
+    if (pIdx < 0 || pIdx >= GRID.length) return;
+    const [gx, gy] = GRID[pIdx];
+    const [ox, oy] = DOT_OFFSETS[i];
+    const cat  = DOT_CATS[i];
+    const meta = CATEGORY_META[cat] || CATEGORY_META.consumer;
+    d3.select(this)
+      .attr("fill", meta.color)
+      .transition(t)
+      .attr("transform", `translate(${gx + ox},${gy + oy})`);
+  });
+}
+
+function buildSegLegend() {
+  const el = document.getElementById("seg-legend");
+  Object.entries(CATEGORY_META).forEach(([cat, meta]) => {
+    const item = document.createElement("div");
+    item.className = "seg-leg";
+    item.innerHTML = `<div class="seg-leg-dot" style="background:${meta.color}"></div>${meta.label}`;
+    el.appendChild(item);
+  });
+  const sep = document.createElement("div");
+  sep.style.cssText = "width:1px;background:#c8b498;margin:1px 4px;align-self:stretch;flex-shrink:0";
+  el.appendChild(sep);
+  const dPath = d3.symbol().type(d3.symbolSquare).size(22)();
+  const cPath = d3.symbol().type(d3.symbolCircle).size(14)();
+  [{path: dPath, label: "Enterprise"}, {path: cPath, label: "Consumer"}].forEach(({path, label}) => {
+    const item = document.createElement("div");
+    item.className = "seg-leg";
+    item.innerHTML = `<svg width="12" height="12" viewBox="-6 -6 12 12" style="flex-shrink:0"><path d="${path}" fill="#7a6045"/></svg>${label}`;
+    el.appendChild(item);
+  });
+}
+
+/* ---- Charts ---- */
+
+let shareCtx = null, gapCtx = null;
+
+function buildShareChart(el, incidentData) {
+  const W = el.clientWidth||400, H = el.clientHeight||160;
+  const m = {t:6,r:14,b:30,l:30};
+  const w = W-m.l-m.r, h = H-m.t-m.b;
+  const sv = d3.select(el).append("svg").attr("width",W).attr("height",H);
+  const g  = sv.append("g").attr("transform",`translate(${m.l},${m.t})`);
+  const x  = d3.scaleLinear().domain([0,N-1]).range([0,w]);
+  const y  = d3.scaleLinear().domain([0,1]).range([h,0]);
+  const stk = d3.stack().keys(d3.range(providers.length)).value((d,k)=>d[k]);
+  g.selectAll(".sa").data(stk(shareMatrix)).join("path").attr("class","sa")
+   .attr("d",d3.area().x((d,i)=>x(i)).y0(d=>y(d[0])).y1(d=>y(d[1])).curve(d3.curveCatmullRom.alpha(.5)))
+   .attr("fill",(d,i)=>colors[i]).attr("opacity",.72);
+  g.append("g").attr("transform",`translate(0,${h})`)
+   .call(d3.axisBottom(x).ticks(Math.min(N,8)).tickSize(0).tickPadding(5))
+   .call(a=>a.select(".domain").attr("stroke","#c8b498"))
+   .call(a=>a.selectAll("text").attr("fill","#7a6045").attr("font-size","8"));
+  g.append("g")
+   .call(d3.axisLeft(y).ticks(3).tickFormat(d3.format(".0%")).tickSize(-w))
+   .call(a=>a.select(".domain").remove())
+   .call(a=>a.selectAll(".tick line").attr("stroke","#d8c9b0").attr("stroke-dasharray","2,3"))
+   .call(a=>a.selectAll("text").attr("fill","#7a6045").attr("font-size","8").attr("dx","-2"));
+
+  const byRound = d3.group(incidentData, d => d.r);
+  const midy = h / 2;
+  byRound.forEach((incs, r) => {
+    const n  = incs.length;
+    const cx = x(r);
+    incs.forEach((inc, i) => {
+      const ox = n === 1 ? 0 : (i - (n-1)/2) * 8;
+      const tx = cx + ox;
+      g.append("path")
+       .attr("d", `M ${tx},${midy-6} L ${tx-4},${midy+3} L ${tx+4},${midy+3} Z`)
+       .attr("fill", colors[inc.pIdx])
+       .attr("opacity", .72)
+       .attr("stroke", "rgba(240,230,211,.5)").attr("stroke-width", .6)
+       .append("title").text(`${providers[inc.pIdx]} · incident R${r}`);
+    });
+  });
+
+  const nl = g.append("line").attr("y1",0).attr("y2",h)
+   .attr("stroke","#5a4030").attr("stroke-width",1.2).attr("opacity",.4).attr("stroke-dasharray","3,3");
+  return {x,nl};
+}
+
+function buildGapChart(el) {
+  const W = el.clientWidth||400, H = el.clientHeight||160;
+  const m = {t:6,r:14,b:22,l:38};
+  const w = W-m.l-m.r, h = H-m.t-m.b;
+  const allG = gapMatrix.flat();
+  const yMin = Math.min(0,d3.min(allG)), yMax = Math.max(0,d3.max(allG));
+  const pad  = (yMax-yMin)*0.12;
+  const sv = d3.select(el).append("svg").attr("width",W).attr("height",H);
+  const g  = sv.append("g").attr("transform",`translate(${m.l},${m.t})`);
+  const x  = d3.scaleLinear().domain([0,N-1]).range([0,w]);
+  const y  = d3.scaleLinear().domain([yMin-pad,yMax+pad]).range([h,0]);
+  const ln = d3.line().x((d,i)=>x(i)).y(d=>y(d)).curve(d3.curveCatmullRom.alpha(.5));
+  providers.forEach((p,i) => {
+    g.append("path").datum(gapMatrix.map(row=>row[i]))
+     .attr("fill","none").attr("stroke",colors[i]).attr("stroke-width",2).attr("opacity",.8).attr("d",ln);
+  });
+  g.append("line").attr("x1",0).attr("x2",w).attr("y1",y(0)).attr("y2",y(0))
+   .attr("stroke","#c8b498").attr("stroke-width",1).attr("stroke-dasharray","4,4");
+  g.append("text").attr("x",2).attr("y",y(0)-4).attr("fill","#c8b498").attr("font-size","8").text("0");
+  g.append("g").attr("transform",`translate(0,${h})`)
+   .call(d3.axisBottom(x).ticks(Math.min(N,8)).tickSize(0).tickPadding(5))
+   .call(a=>a.select(".domain").attr("stroke","#c8b498"))
+   .call(a=>a.selectAll("text").attr("fill","#7a6045").attr("font-size","8"));
+  g.append("g")
+   .call(d3.axisLeft(y).ticks(4).tickSize(-w))
+   .call(a=>a.select(".domain").remove())
+   .call(a=>a.selectAll(".tick line").attr("stroke","#d8c9b0").attr("stroke-dasharray","2,3"))
+   .call(a=>a.selectAll("text").attr("fill","#7a6045").attr("font-size","8").attr("dx","-2"));
+  const nl = g.append("line").attr("y1",0).attr("y2",h)
+   .attr("stroke","#5a4030").attr("stroke-width",1.2).attr("opacity",.4).attr("stroke-dasharray","3,3");
+  return {x,nl};
+}
+
+function moveNow(r) {
+  if (shareCtx) shareCtx.nl.attr("x1",shareCtx.x(r)).attr("x2",shareCtx.x(r));
+  if (gapCtx)   gapCtx.nl.attr("x1",gapCtx.x(r)).attr("x2",gapCtx.x(r));
+}
+
+/* ---- Media state ---- */
+
+
+/* ---- Newspaper ---- */
+
+function escapeHTML(t) {
+  return String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function colorizeProviders(text) {
+  let out = escapeHTML(text);
+  providers.forEach((p, i) => {
+    const escaped = p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    out = out.replace(new RegExp(`\\b${escaped}\\b`, "g"),
+      `<span style="color:${colors[i]};font-weight:700">${p}</span>`);
+  });
+  return out;
+}
+
+function hlMain(text) {
+  return `<div class="np-hl-main">${colorizeProviders(text)}</div>`;
+}
+function hlSub(text) {
+  return `<div class="np-hl-sub">${colorizeProviders(text)}</div>`;
+}
+function subdiv() { return `<div class="np-subdiv"></div>`; }
+function quiet(text) { return `<div class="np-quiet">${text}</div>`; }
+
+function updateNewspaper(frame, r) {
+  document.getElementById("np-edition").innerHTML = `Vol. I &middot; Round ${r}`;
+
+  const prevFund = r > 0 ? (frames[r-1].cum_funding||{}) : {};
+  const tickerHTML = providers.map((p, i) => {
+    const cf   = (frame.cum_funding||{})[p] || 0;
+    const prev = prevFund[p] || 0;
+    const cfStr = cf >= 1e9 ? `$${(cf/1e9).toFixed(1)}B`
+                : cf >= 1e6 ? `$${Math.round(cf/1e6)}M`
+                : cf > 0   ? `$${Math.round(cf/1e3)}K`
+                : "$0";
+    const arrow = cf > prev ? "&#9650;" : "&ndash;";
+    const short = p.replace(" Labs","").replace(" AI","").replace(" Systems","");
+    return `<span class="tick-item" style="color:${colors[i]}">${short}&nbsp;${cfStr}&nbsp;${arrow}</span>`;
+  }).join('<span class="tick-sep">&middot;</span>');
+  document.getElementById("np-ticker").innerHTML = tickerHTML;
+
+  const hls = frame.headlines;
+  const col = document.getElementById("np-col1");
+  if (hls.length === 0) {
+    col.innerHTML = quiet("No major headlines this round.");
+    return;
+  }
+  const parts = [];
+  hls.forEach((h, i) => {
+    if (i > 0) parts.push(subdiv());
+    parts.push(i === 0 ? hlMain(h) : hlSub(h));
+  });
+  col.innerHTML = parts.join("");
+}
+
+/* ---- Event log chips ---- */
+
+const MAX_CHIPS = 14;
+const renderedChipRounds = new Set();
+
+function pushEvents(frame, r) {
+  const log = document.getElementById("evt-log");
+  // Scrubbed backwards: drop chips from rounds after r so they re-render on replay.
+  [...log.querySelectorAll(".chip")].forEach(ch => {
+    if (+ch.dataset.round > r) ch.remove();
+  });
+  renderedChipRounds.forEach(rr => { if (rr > r) renderedChipRounds.delete(rr); });
+  // Ask the DOM, not the Set: MAX_CHIPS pruning removes old chips while their
+  // rounds stay marked rendered, so scrubbing back past the prune point used to
+  // wipe the log and leave it empty until you stepped forward again.
+  if (log.querySelector('.chip[data-round="' + r + '"]')) return;
+  renderedChipRounds.add(r);
+  frame.events.forEach(ev => {
+    const chip = document.createElement("div");
+    chip.className = "chip " + ev.kind;
+    chip.dataset.round = r;
+    chip.innerHTML = `<span class="chip-rnd">R${r}</span> ${ev.text}`;
+    if (ev.kind === "reg" && ev.trace) {
+      chip.setAttribute("tabindex", "0");
+      chip.setAttribute("role", "button");
+      chip.setAttribute("aria-label", "Regulator, round " + (ev.round ?? r) + ": open reasoning");
+      chip.addEventListener("click", () => showRegTrace(ev.trace, ev.round ?? r));
+      chip.addEventListener("keydown", e => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault(); showRegTrace(ev.trace, ev.round ?? r);
+        }
+      });
+    }
+    log.appendChild(chip);
+    while (log.children.length > MAX_CHIPS + 1) log.removeChild(log.children[1]);
+    log.scrollLeft = log.scrollWidth;
+  });
+}
+
+/* ---- Render ---- */
+
+function render(r) {
+  const frame = frames[r];
+  if (activeTrace !== null) {
+    const pIdx = providers.indexOf(activeTrace);
+    if (pIdx >= 0) updateTraceContent(activeTrace, pIdx);
+  }
+  updateOrbs(frame, r);
+  updateDots(frame);
+  moveNow(r);
+  updateNewspaper(frame, r);
+  pushEvents(frame, r);
+  document.getElementById("rnum").textContent      = r;
+  document.getElementById("scrubber").value        = r;
+  document.getElementById("scrub-lbl").textContent = r + " / " + (N - 1);
+}
+
+/* ---- Playback ---- */
+
+function advance() {
+  if (cur >= N - 1) { stopPlay(); return; }
+  cur++; render(cur);
+}
+
+function startPlay() {
+  playing = true;
+  document.getElementById("btn-play").innerHTML = "&#9646;&#9646;";
+  document.getElementById("btn-play").setAttribute("aria-label", "Pause");
+  document.getElementById("btn-play").classList.add("on");
+  timer = setInterval(advance, delay);
+}
+
+function stopPlay() {
+  playing = false;
+  clearInterval(timer); timer = null;
+  document.getElementById("btn-play").innerHTML = "&#9654;";
+  document.getElementById("btn-play").setAttribute("aria-label", "Play");
+  document.getElementById("btn-play").classList.remove("on");
+}
+
+document.getElementById("btn-restart").addEventListener("click", () => {
+  stopPlay(); cur = 0; render(0); startPlay();
+});
+document.getElementById("btn-play").addEventListener("click", () => {
+  if (cur >= N - 1) cur = 0;
+  playing ? stopPlay() : startPlay();
+});
+document.getElementById("btn-prev").addEventListener("click", () => {
+  stopPlay(); if (cur > 0) { cur--; render(cur); }
+});
+document.getElementById("btn-next").addEventListener("click", () => {
+  stopPlay(); if (cur < N - 1) { cur++; render(cur); }
+});
+document.getElementById("speed").addEventListener("change", e => {
+  delay = parseInt(e.target.value);
+  if (playing) { clearInterval(timer); timer = setInterval(advance, delay); }
+});
+document.getElementById("scrubber").addEventListener("input", e => {
+  stopPlay(); cur = parseInt(e.target.value); render(cur);
+});
+
+/* ---- Init ---- */
+
+document.getElementById("tp-close").addEventListener("click", dismissTrace);
+document.getElementById("trace-panel").addEventListener("click", e => e.stopPropagation());
+document.getElementById("orb-svg-wrap").addEventListener("click", () => { if (activeTrace) dismissTrace(); });
+
+/* ---- Spotlight tour ---- */
+let _spotlightFirstDismiss = true;
+function hideSpotlight() {
+  const ov = document.getElementById("spotlight-overlay");
+  ov.classList.remove("active");
+  ov.innerHTML = "";
+  sessionStorage.setItem("tour_done", "1");
+  if (_spotlightFirstDismiss) {
+    _spotlightFirstDismiss = false;
+    if (!REDUCED_MOTION) startPlay();
+  }
+}
+
+function showSpotlight() {
+  const ov = document.getElementById("spotlight-overlay");
+  ov.innerHTML = "";
+  ov.classList.add("active");
+
+  const svgEl = document.getElementById("orb-svg");
+  const ctm   = svgEl.getScreenCTM();
+  const pt    = svgEl.createSVGPoint();
+  pt.x = 90; pt.y = 104;
+  const sp  = pt.matrixTransform(ctm);
+  const orbX = sp.x, orbY = sp.y;
+  const orbR = MAX_R * Math.sqrt(ctm.a * ctm.a + ctm.b * ctm.b) * 1.35;
+
+  const segR   = document.getElementById("seg-legend").getBoundingClientRect();
+  const csecs  = document.querySelectorAll(".csec");
+  const shrR   = csecs[0].getBoundingClientRect();
+  const gapR   = csecs[1].getBoundingClientRect();
+  const shrWrapR = document.getElementById("share-wrap").getBoundingClientRect();
+  const gapWrapR = document.getElementById("gap-wrap").getBoundingClientRect();
+  const evtR   = document.getElementById("evt-log").getBoundingClientRect();
+  const W = window.innerWidth, H = window.innerHeight;
+  const pad = 10;
+
+  const NS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(NS, "svg");
+  svg.id = "spotlight-svg";
+
+  const defs = document.createElementNS(NS, "defs");
+  const mask = document.createElementNS(NS, "mask");
+  mask.id = "smask";
+  const base = document.createElementNS(NS, "rect");
+  base.setAttribute("width","100%"); base.setAttribute("height","100%");
+  base.setAttribute("fill","white");
+  mask.appendChild(base);
+
+  function cutCircle(cx, cy, r) {
+    const c = document.createElementNS(NS, "circle");
+    c.setAttribute("cx", cx); c.setAttribute("cy", cy); c.setAttribute("r", r);
+    c.setAttribute("fill","black"); mask.appendChild(c);
+  }
+  function cutRect(x, y, w, h) {
+    const r = document.createElementNS(NS, "rect");
+    r.setAttribute("x", x); r.setAttribute("y", y);
+    r.setAttribute("width", w); r.setAttribute("height", h);
+    r.setAttribute("rx", 6); r.setAttribute("fill","black"); mask.appendChild(r);
+  }
+
+  cutCircle(orbX, orbY, orbR);
+  cutRect(segR.left-pad, segR.top-pad, segR.width+pad*2, segR.height+pad*2);
+  cutRect(shrR.left-pad, shrR.top-pad, shrR.width+pad*2, shrR.height+pad*2);
+  cutRect(gapR.left-pad, gapR.top-pad, gapR.width+pad*2, gapR.height+pad*2);
+  cutRect(evtR.left-pad, evtR.top-pad, evtR.width+pad*2, evtR.height+pad*2);
+
+  defs.appendChild(mask);
+  svg.appendChild(defs);
+
+  const dark = document.createElementNS(NS, "rect");
+  dark.setAttribute("width","100%"); dark.setAttribute("height","100%");
+  dark.setAttribute("fill","rgba(42,26,14,0.72)");
+  dark.setAttribute("mask","url(#smask)");
+  svg.appendChild(dark);
+
+  function ringCircle(cx, cy, r) {
+    const c = document.createElementNS(NS, "circle");
+    c.setAttribute("cx", cx); c.setAttribute("cy", cy); c.setAttribute("r", r+2);
+    c.setAttribute("fill","none"); c.setAttribute("stroke","rgba(240,230,211,.7)");
+    c.setAttribute("stroke-width","2"); svg.appendChild(c);
+  }
+  function ringRect(x, y, w, h) {
+    const r = document.createElementNS(NS, "rect");
+    r.setAttribute("x", x-2); r.setAttribute("y", y-2);
+    r.setAttribute("width", w+4); r.setAttribute("height", h+4);
+    r.setAttribute("rx", 7); r.setAttribute("fill","none");
+    r.setAttribute("stroke","rgba(240,230,211,.7)"); r.setAttribute("stroke-width","2");
+    svg.appendChild(r);
+  }
+
+  ringCircle(orbX, orbY, orbR);
+  ringRect(segR.left-pad, segR.top-pad, segR.width+pad*2, segR.height+pad*2);
+  ringRect(shrR.left-pad, shrR.top-pad, shrR.width+pad*2, shrR.height+pad*2);
+  ringRect(gapR.left-pad, gapR.top-pad, gapR.width+pad*2, gapR.height+pad*2);
+  ringRect(evtR.left-pad, evtR.top-pad, evtR.width+pad*2, evtR.height+pad*2);
+
+  ov.appendChild(svg);
+
+  function label(x, y, html) {
+    const d = document.createElement("div");
+    d.className = "spot-label";
+    d.style.left = Math.min(x, W-220) + "px";
+    d.style.top  = Math.max(y, 4)     + "px";
+    d.innerHTML  = html;
+    ov.appendChild(d);
+  }
+
+  label(orbX + orbR + 14, orbY - 56,
+    `<div class="slbl-head">Provider orbs</div>
+     <b>Size</b> = market share<br>
+     <b>Ring</b> = portfolio split:<br>
+     &nbsp;&nbsp;<span style="color:#5a7aa8">&#9632;</span> R&amp;D &nbsp;
+     <span style="color:#5a9a72">&#9632;</span> Safety &nbsp;
+     <span style="color:#c47a3c">&#9632;</span> Product<br>
+     <b>Number</b> = benchmark score (0&ndash;1)<br>
+     <span style="color:#7a6045;font-size:9px">Click orb to read reasoning</span>`);
+
+  label(segR.left, segR.bottom + 8,
+    `<div class="slbl-head">Consumer dots</div>
+     <b>Color</b> = use-case segment<br>
+     <b>Shape</b>: &#9632; enterprise &nbsp;&#9679; consumer<br>
+     <b>Position</b> = current provider`);
+
+  label(shrWrapR.left + 8, shrWrapR.top + 8,
+    `<div class="slbl-head">Market share over time</div>
+     Stacked area per provider.<br>
+     <span style="color:#7a6045;font-size:9px">&#9650; = incident onset round</span>`);
+
+  label(gapWrapR.left + 8, gapWrapR.top + 8,
+    `<div class="slbl-head">Score &minus; satisfaction gap</div>
+     Positive = benchmarks overstate<br>real user outcomes.<br>
+     <span style="color:#7a6045;font-size:9px">Zero = perfectly calibrated</span>`);
+
+  label(evtR.left + 8, evtR.top - 90,
+    `<div class="slbl-head">Event chips</div>
+     <span style="color:#1a3a6a;font-weight:700">Blue chips</span> = regulator interventions;<br>
+     click one to read the regulator&rsquo;s<br>full reasoning for that action.<br>
+     <span style="color:#6a2a0a;font-weight:700">Amber chips</span> = incident onsets`);
+
+  const btn = document.createElement("button");
+  btn.id = "spot-dismiss"; btn.innerHTML = "Got it &rarr;";
+  btn.addEventListener("click", hideSpotlight);
+  ov.appendChild(btn);
+
+  ov.addEventListener("click", e => { if (e.target === ov || e.target === svg) hideSpotlight(); });
+}
+
+document.getElementById("guide-btn").addEventListener("click", showSpotlight);
+
+/* module is deferred — DOM ready, run directly */ {
+  buildSegLegend();
+  requestAnimationFrame(() => {
+    const incidentData = [];
+    frames.forEach((f, r) => {
+      Object.entries(f.incidents || {}).forEach(([prov, pen]) => {
+        const pIdx = providers.indexOf(prov);
+        if (pIdx >= 0) incidentData.push({r, pIdx, pen});
+      });
+    });
+    shareCtx = buildShareChart(document.getElementById("share-wrap"), incidentData);
+    gapCtx   = buildGapChart(document.getElementById("gap-wrap"));
+    render(0);
+    if (!sessionStorage.getItem("tour_done")) showSpotlight();
+    else if (!REDUCED_MOTION) startPlay();
+  });
+}
+</script>
+</body>
+</html>
