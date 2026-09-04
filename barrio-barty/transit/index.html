@@ -3,7 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <link rel="icon" type="image/svg+xml" href="./barty/logo_b.svg" />
+    <!-- /barrio-barty/ not "./": vite emits one index.html PER ROUTE, so a relative
+         href resolved against /barty/ and /play/ and asked for
+         barty/barty/logo_b.svg — a 404 on every page of the deployed site. -->
+    <link rel="icon" type="image/svg+xml" href="/barrio-barty/barty/logo_b.svg" />
     <title>Barrio BART-y</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link
@@ -14,6 +17,6 @@
     <link rel="stylesheet" crossorigin href="/barrio-barty/assets/index-Cdp5b2Mm.css">
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root"></div>
   </body>
 </html>
