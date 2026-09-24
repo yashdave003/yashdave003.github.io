@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Tree team token, a goofy evergreen mascot with googly eyes">
+  <!-- espresso trunk + little feet -->
+  <g fill="#2b2015" stroke="#2b2015" stroke-width="1" stroke-linejoin="round">
+    <rect x="51" y="92" width="18" height="20" rx="3"/>
+    <ellipse cx="46" cy="113" rx="8" ry="4"/>
+    <ellipse cx="74" cy="113" rx="8" ry="4"/>
+  </g>
+  <!-- three rounded green tiers -->
+  <g fill="#1f7a3d" stroke="#1f7a3d" stroke-width="6" stroke-linejoin="round">
+    <path d="M 60 6 L 82 36 L 38 36 Z"/>
+    <path d="M 60 24 L 92 64 L 28 64 Z"/>
+    <path d="M 60 46 L 104 94 L 16 94 Z"/>
+  </g>
+  <!-- mismatched googly eyes -->
+  <circle cx="48" cy="54" r="9" fill="#f4ead8"/>
+  <circle cx="73" cy="52" r="11" fill="#f4ead8"/>
+  <circle cx="51" cy="57" r="4" fill="#2b2015"/>
+  <circle cx="69" cy="48" r="5" fill="#2b2015"/>
+  <!-- wide open grin with a cardinal tongue -->
+  <path d="M 42 70 Q 60 92 80 70 Z" fill="#2b2015"/>
+  <ellipse cx="62" cy="81" rx="8" ry="4.5" fill="#d40843"/>
+  <!-- a couple of lighter fronds -->
+  <path d="M 30 90 L 40 80 M 90 90 L 80 80" stroke="#2e8b57" stroke-width="3" stroke-linecap="round"/>
+</svg>
