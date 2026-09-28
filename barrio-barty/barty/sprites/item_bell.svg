@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Seagull Bell: calls the Seagull to steal a star or snack">
+  <!-- Brass bell with a seagull (glyph_gull.svg's own two-wing silhouette)
+       landed on the hanger, since the bell calls the Seagull to you. -->
+  <rect x="55" y="10" width="10" height="14" rx="4" fill="#2b2015"/>
+  <path d="M60 46 Q40 46 40 78 L80 78 Q80 46 60 46 Z" fill="#EF9F27" stroke="#2b2015" stroke-width="6" stroke-linejoin="round"/>
+  <ellipse cx="60" cy="80" rx="26" ry="9" fill="#EF9F27" stroke="#2b2015" stroke-width="6"/>
+  <circle cx="60" cy="98" r="6.5" fill="#2b2015"/>
+  <path d="M32 30c6-10 14-11 20-3 6-8 14-7 20 3-6-3-13-3-20 3-7-6-14-6-20-3z" fill="#ffffff" stroke="#2b2015" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M50 26 L57 29 L50 31 Z" fill="#EF9F27" stroke="#2b2015" stroke-width="2"/>
+</svg>

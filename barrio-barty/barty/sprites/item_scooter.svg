@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Scooter: walk three times faster for one turn">
+  <!-- Side-view kick scooter, deck colour ported from vehicleArt.ts's own
+       scooter deck (#8cc63f), plus speed lines trailing behind. -->
+  <g stroke="#2b2015" stroke-width="4" stroke-linecap="round" opacity=".55">
+    <line x1="14" y1="52" x2="2" y2="46"/>
+    <line x1="14" y1="64" x2="2" y2="64"/>
+    <line x1="14" y1="76" x2="2" y2="82"/>
+  </g>
+  <line x1="80" y1="76" x2="92" y2="26" stroke="#2b2015" stroke-width="8" stroke-linecap="round"/>
+  <line x1="82" y1="26" x2="102" y2="22" stroke="#2b2015" stroke-width="8" stroke-linecap="round"/>
+  <rect x="18" y="76" width="72" height="11" rx="5.5" fill="#8cc63f" stroke="#2b2015" stroke-width="4"/>
+  <circle cx="24" cy="96" r="12" fill="#2b2015"/>
+  <circle cx="24" cy="96" r="4.5" fill="#d9d2c3"/>
+  <circle cx="88" cy="96" r="12" fill="#2b2015"/>
+  <circle cx="88" cy="96" r="4.5" fill="#d9d2c3"/>
+</svg>

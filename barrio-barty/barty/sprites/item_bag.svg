@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Bag: random items, filling you up to your item cap">
+  <!-- Tied burlap sack with sparkle marks standing in for "random" (no text
+       in the icon, per the house style). -->
+  <path d="M30 46 Q30 18 60 18 Q90 18 90 46 L84 100 Q60 112 36 100 Z" fill="#a9744a" stroke="#2b2015" stroke-width="6" stroke-linejoin="round"/>
+  <rect x="47" y="10" width="26" height="16" rx="7" fill="#7a5636" stroke="#2b2015" stroke-width="5"/>
+  <g fill="#EF9F27" stroke="#2b2015" stroke-width="2.5" stroke-linejoin="round">
+    <path d="M60 40 L64 50 L74 54 L64 58 L60 68 L56 58 L46 54 L56 50 Z"/>
+    <circle cx="42" cy="72" r="4.5"/>
+    <circle cx="78" cy="76" r="3.5"/>
+  </g>
+</svg>

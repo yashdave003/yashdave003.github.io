@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Chowder: the Seagull takes this instead of your star, once">
+  <!-- Sourdough bread bowl (tan crust) with cream chowder and steam. -->
+  <g stroke="#2b2015" stroke-width="3.5" stroke-linecap="round" fill="none" opacity=".6">
+    <path d="M46 36 Q40 26 48 16"/>
+    <path d="M70 36 Q76 26 68 16"/>
+  </g>
+  <path d="M18 60 Q18 100 60 104 Q102 100 102 60 Z" fill="#c8935a" stroke="#2b2015" stroke-width="6" stroke-linejoin="round"/>
+  <ellipse cx="60" cy="60" rx="42" ry="13" fill="#e0aa6e" stroke="#2b2015" stroke-width="6"/>
+  <ellipse cx="60" cy="59" rx="30" ry="8" fill="#efe0b8" stroke="#2b2015" stroke-width="3"/>
+  <circle cx="68" cy="57" r="3.2" fill="#b23a2e"/>
+  <circle cx="52" cy="60" r="2.6" fill="#b23a2e"/>
+</svg>

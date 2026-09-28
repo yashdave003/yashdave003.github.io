@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Ferry Ticket: board the ferry any round for one vault guess">
+  <!-- Blue ticket stub (ferry blue #1f4e8c, matching vehicleArt.ts's ferry
+       hull trim) with a tear-off perforation and a small hull glyph. -->
+  <rect x="8" y="38" width="104" height="44" rx="7" fill="#1f4e8c" stroke="#2b2015" stroke-width="6"/>
+  <line x1="80" y1="38" x2="80" y2="82" stroke="#f4ead8" stroke-width="5" stroke-dasharray="5 6"/>
+  <circle cx="80" cy="38" r="7" fill="#f4ead8" stroke="#2b2015" stroke-width="3"/>
+  <circle cx="80" cy="82" r="7" fill="#f4ead8" stroke="#2b2015" stroke-width="3"/>
+  <path d="M20 62 L64 62 Q72 62 76 68 Q72 74 64 74 L20 74 Z" fill="#f4ead8" stroke="#2b2015" stroke-width="3.5" stroke-linejoin="round"/>
+  <line x1="34" y1="62" x2="34" y2="48" stroke="#f4ead8" stroke-width="4" stroke-linecap="round"/>
+</svg>
