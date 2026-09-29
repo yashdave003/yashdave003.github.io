@@ -92,36 +92,38 @@
     <!-- 1b. FAR BACKGROUND HILLS (continuous, hazy, taller around Berkeley & Stanford) -->
     <path d="M 0,148 Q 80,118 160,128 Q 200,108 260,98 Q 320,108 400,114 Q 480,108 560,118 Q 640,96 720,108 Q 760,116 800,128 L 800,180 L 0,180 Z" fill="url(#bg-hills-f)" opacity="0.55"/>
   
-    <!-- 1c. SUTRO TOWER — drawn between the two background-hills layers; color-matched to first range so it reads as part of that atmospheric depth -->
-    <g opacity="0.55">
+    <!-- 1c. SUTRO TOWER — drawn between the two background-hills layers; class="sutro" so its stroke+fill
+         track the far-hills colour through the day↔night cycle (stays part of the atmospheric depth at every
+         phase, instead of glowing pale against a dark sky). Colour is set on the group and inherited. -->
+    <g class="sutro" stroke="#b0c0d0" fill="#b0c0d0" opacity="0.55">
       <!-- Splayed A-frame lattice base -->
-      <line x1="590" y1="86" x2="580" y2="146" stroke="#b0c0d0" stroke-width="1.3"/>
-      <line x1="590" y1="86" x2="590" y2="146" stroke="#b0c0d0" stroke-width="1.3"/>
-      <line x1="590" y1="86" x2="600" y2="146" stroke="#b0c0d0" stroke-width="1.3"/>
+      <line x1="590" y1="86" x2="580" y2="146" stroke-width="1.3"/>
+      <line x1="590" y1="86" x2="590" y2="146" stroke-width="1.3"/>
+      <line x1="590" y1="86" x2="600" y2="146" stroke-width="1.3"/>
       <!-- Horizontal cross-bracing -->
-      <line x1="582" y1="134" x2="598" y2="134" stroke="#b0c0d0" stroke-width="0.7"/>
-      <line x1="584" y1="122" x2="596" y2="122" stroke="#b0c0d0" stroke-width="0.7"/>
-      <line x1="586" y1="110" x2="594" y2="110" stroke="#b0c0d0" stroke-width="0.7"/>
-      <line x1="587" y1="98"  x2="593" y2="98"  stroke="#b0c0d0" stroke-width="0.7"/>
+      <line x1="582" y1="134" x2="598" y2="134" stroke-width="0.7"/>
+      <line x1="584" y1="122" x2="596" y2="122" stroke-width="0.7"/>
+      <line x1="586" y1="110" x2="594" y2="110" stroke-width="0.7"/>
+      <line x1="587" y1="98"  x2="593" y2="98"  stroke-width="0.7"/>
       <!-- Diagonal X-bracing -->
-      <line x1="582" y1="134" x2="588" y2="122" stroke="#b0c0d0" stroke-width="0.5" opacity="0.7"/>
-      <line x1="598" y1="134" x2="592" y2="122" stroke="#b0c0d0" stroke-width="0.5" opacity="0.7"/>
-      <line x1="584" y1="122" x2="589" y2="110" stroke="#b0c0d0" stroke-width="0.5" opacity="0.7"/>
-      <line x1="596" y1="122" x2="591" y2="110" stroke="#b0c0d0" stroke-width="0.5" opacity="0.7"/>
-      <line x1="586" y1="110" x2="589" y2="98"  stroke="#b0c0d0" stroke-width="0.5" opacity="0.7"/>
-      <line x1="594" y1="110" x2="591" y2="98"  stroke="#b0c0d0" stroke-width="0.5" opacity="0.7"/>
+      <line x1="582" y1="134" x2="588" y2="122" stroke-width="0.5" opacity="0.7"/>
+      <line x1="598" y1="134" x2="592" y2="122" stroke-width="0.5" opacity="0.7"/>
+      <line x1="584" y1="122" x2="589" y2="110" stroke-width="0.5" opacity="0.7"/>
+      <line x1="596" y1="122" x2="591" y2="110" stroke-width="0.5" opacity="0.7"/>
+      <line x1="586" y1="110" x2="589" y2="98"  stroke-width="0.5" opacity="0.7"/>
+      <line x1="594" y1="110" x2="591" y2="98"  stroke-width="0.5" opacity="0.7"/>
       <!-- Lower platform -->
-      <rect x="582" y="92" width="16" height="2" fill="#b0c0d0"/>
-      <rect x="582" y="90" width="16" height="2" fill="#b0c0d0"/>
+      <rect x="582" y="92" width="16" height="2"/>
+      <rect x="582" y="90" width="16" height="2"/>
       <!-- Upper platform -->
-      <rect x="584" y="80" width="12" height="2" fill="#b0c0d0"/>
-      <rect x="584" y="78" width="12" height="2" fill="#b0c0d0"/>
+      <rect x="584" y="80" width="12" height="2"/>
+      <rect x="584" y="78" width="12" height="2"/>
       <!-- Trunk between platforms (so upper crown doesn't read as floating) -->
-      <rect x="588" y="82" width="4" height="8" fill="#b0c0d0"/>
+      <rect x="588" y="82" width="4" height="8"/>
       <!-- Three vertical antennas (shortened a touch more) -->
-      <rect x="585"   y="69" width="1.2" height="9"  fill="#b0c0d0"/>
-      <rect x="589.4" y="66" width="1.2" height="12" fill="#b0c0d0"/>
-      <rect x="593.8" y="69" width="1.2" height="9"  fill="#b0c0d0"/>
+      <rect x="585"   y="69" width="1.2" height="9"/>
+      <rect x="589.4" y="66" width="1.2" height="12"/>
+      <rect x="593.8" y="69" width="1.2" height="9"/>
     </g>
   
     <!-- Second range w/ Twin Peaks profile around x=555..600 (covers Sutro's lower half) -->
@@ -149,20 +151,20 @@
       <circle cx="548" cy="119" r="0.5" fill="#e8c060" opacity="0.85"/>
       <!-- Twin Peaks / Marin cluster (between Salesforce at x≈625, Memorial Church at x≈685) -->
       <circle cx="635" cy="123" r="0.55" fill="#e8c060"/>
-      <circle cx="642" cy="118" r="0.5" fill="#e8c060" opacity="0.8"/>
-      <circle cx="648" cy="115" r="0.5" fill="#e8c060" opacity="0.85"/>
-      <circle cx="652" cy="120" r="0.5" fill="#e8c060" opacity="0.85"/>
-      <circle cx="660" cy="112" r="0.5" fill="#e8c060" opacity="0.8"/>
-      <circle cx="668" cy="117" r="0.55" fill="#e8c060" opacity="0.9"/>
+      <circle cx="642" cy="126" r="0.5" fill="#e8c060" opacity="0.8"/>
+      <circle cx="648" cy="124" r="0.5" fill="#e8c060" opacity="0.85"/>
+      <circle cx="652" cy="123" r="0.5" fill="#e8c060" opacity="0.85"/>
+      <circle cx="660" cy="122" r="0.5" fill="#e8c060" opacity="0.8"/>
+      <circle cx="668" cy="121" r="0.55" fill="#e8c060" opacity="0.9"/>
       <circle cx="675" cy="123" r="0.45" fill="#e8c060" opacity="0.7"/>
       <circle cx="678" cy="121" r="0.45" fill="#e8c060" opacity="0.75"/>
       <!-- Stanford foothills cluster (between Memorial Church at x≈731, Hoover at x≈770) -->
       <circle cx="742" cy="122" r="0.55" fill="#e8c060"/>
       <circle cx="750" cy="125" r="0.45" fill="#e8c060" opacity="0.75"/>
-      <circle cx="755" cy="118" r="0.5" fill="#e8c060" opacity="0.8"/>
+      <circle cx="755" cy="123" r="0.5" fill="#e8c060" opacity="0.8"/>
       <circle cx="758" cy="124" r="0.5" fill="#e8c060" opacity="0.8"/>
-      <circle cx="785" cy="128" r="0.45" fill="#e8c060" opacity="0.75"/>
-      <circle cx="792" cy="125" r="0.5" fill="#e8c060" opacity="0.85"/>
+      <circle cx="785" cy="131" r="0.45" fill="#e8c060" opacity="0.75"/>
+      <circle cx="792" cy="133" r="0.5" fill="#e8c060" opacity="0.85"/>
     </g>
   
     <!-- 2. GROUND -->
@@ -1005,11 +1007,11 @@
 
     // Colour states (sky / ground / lights), keyed to sun altitude via the timeline below.
     const STATES = {
-      day:      { sky:['#c5dff0','#cfe6f4','#dceef8','#dce8f2','#cfe2f0'], water:['#a8d4ec','#88bcd8'], grass:['#8aaa7a','#5a7a4a'], sand:['#e2d0b0','#cdb890'], bgh:['#b8c8d8','#a8b8c8'], midhill:'#a8a89a', gbeam:'#9a8a70', gpillar:'#8a7a60', dayhl:1, stars:0, hill:0, dubai:0, baylight:'#3d3020', crown:'#4a5868', spire:'#2a1a0e', dbody:'#48b4e4', droof:'#e8f0f4', fbody:'#1f3825', cbody:'#e8e8ec' },
-      golden:   { sky:['#1e2f5e','#5a5a8e','#b87a86','#ee9568','#ffc873'], water:['#eca673','#6d5a78'], grass:['#6e5e3e','#2c2414'], sand:['#cf9a60','#97642f'], bgh:['#7e6e8e','#5f5070'], midhill:'#3d3250', gbeam:'#6a563c', gpillar:'#5e4c34', dayhl:0, stars:0, hill:0, dubai:0, baylight:'#6a5a40', crown:'#9a7a3a', spire:'#2a1a0e', dbody:'#3f6e86', droof:'#c7b596', fbody:'#1c3020', cbody:'#d6cdc2' },
-      bluehour: { sky:['#0e1a3a','#1f2b52','#3a3a63','#7a4a5a','#cf7038'], water:['#5a4a5e','#0e1730'], grass:['#34384a','#161a26'], sand:['#4a4250','#2a2434'], bgh:['#34324e','#242238'], midhill:'#1f1d30', gbeam:'#6a563c', gpillar:'#5e4c34', dayhl:0, stars:0.5, hill:0.6, dubai:0.7, baylight:'#9a7a50', crown:'#caa040', spire:'#8a8a90', dbody:'#2a4456', droof:'#6a6c78', fbody:'#142418', cbody:'#6a6870' },
-      night:    { sky:['#08061a','#0d0920','#120c2a','#180e22','#1e100a'], water:['#0a1428','#050a18'], grass:['#1a2a14','#0e1a0a'], sand:['#2a1e0e','#1e1408'], bgh:['#1a2030','#141a28'], midhill:'#1c1726', gbeam:'#3a2f1e', gpillar:'#332817', dayhl:0, stars:1, hill:1, dubai:1, baylight:'#f0e6c0', crown:'#f5d850', spire:'#d8dcd8', dbody:'#264458', droof:'#5a5c66', fbody:'#142418', cbody:'#2e3036' },
-      dawn:     { sky:['#2a2f55','#4a4a78','#9a6a86','#e8a886','#ffd9a8'], water:['#d6a690','#5a5a72'], grass:['#62584a','#2a2418'], sand:['#b89a86','#806452'], bgh:['#8a7a92','#6a5e76'], midhill:'#46405a', gbeam:'#6a563c', gpillar:'#5e4c34', dayhl:0, stars:0.28, hill:0, dubai:0, baylight:'#5a5266', crown:'#5a5868', spire:'#3a2a1e', dbody:'#5a7e92', droof:'#cabfc0', fbody:'#243a2c', cbody:'#dcd4cc' }
+      day:      { sky:['#c5dff0','#cfe6f4','#dceef8','#dce8f2','#cfe2f0'], water:['#a8d4ec','#88bcd8'], grass:['#8aaa7a','#5a7a4a'], sand:['#e2d0b0','#cdb890'], bgh:['#b8c8d8','#a8b8c8'], midhill:'#a8a89a', gbeam:'#9a8a70', gpillar:'#8a7a60', dayhl:1, stars:0, hill:0, dubai:0, baylight:'#3d3020', crown:'#4a5868', spire:'#2a1a0e', dbody:'#48b4e4', droof:'#e8f0f4', fbody:'#1f3825', cbody:'#e8e8ec', sutro:'#b0c0d0' },
+      golden:   { sky:['#1e2f5e','#5a5a8e','#b87a86','#ee9568','#ffc873'], water:['#eca673','#6d5a78'], grass:['#6e5e3e','#2c2414'], sand:['#cf9a60','#97642f'], bgh:['#7e6e8e','#5f5070'], midhill:'#3d3250', gbeam:'#6a563c', gpillar:'#5e4c34', dayhl:0, stars:0, hill:0, dubai:0, baylight:'#6a5a40', crown:'#9a7a3a', spire:'#2a1a0e', dbody:'#3f6e86', droof:'#c7b596', fbody:'#1c3020', cbody:'#d6cdc2', sutro:'#7e6e8e' },
+      bluehour: { sky:['#0e1a3a','#1f2b52','#3a3a63','#7a4a5a','#cf7038'], water:['#5a4a5e','#0e1730'], grass:['#34384a','#161a26'], sand:['#4a4250','#2a2434'], bgh:['#34324e','#242238'], midhill:'#1f1d30', gbeam:'#6a563c', gpillar:'#5e4c34', dayhl:0, stars:0.5, hill:0.6, dubai:0.7, baylight:'#9a7a50', crown:'#caa040', spire:'#8a8a90', dbody:'#2a4456', droof:'#6a6c78', fbody:'#142418', cbody:'#6a6870', sutro:'#34324e' },
+      night:    { sky:['#08061a','#0d0920','#120c2a','#180e22','#1e100a'], water:['#0a1428','#050a18'], grass:['#1a2a14','#0e1a0a'], sand:['#2a1e0e','#1e1408'], bgh:['#1a2030','#141a28'], midhill:'#1c1726', gbeam:'#3a2f1e', gpillar:'#332817', dayhl:0, stars:1, hill:1, dubai:1, baylight:'#f0e6c0', crown:'#f5d850', spire:'#d8dcd8', dbody:'#264458', droof:'#5a5c66', fbody:'#142418', cbody:'#2e3036', sutro:'#1a2030' },
+      dawn:     { sky:['#2a2f55','#4a4a78','#9a6a86','#e8a886','#ffd9a8'], water:['#d6a690','#5a5a72'], grass:['#62584a','#2a2418'], sand:['#b89a86','#806452'], bgh:['#8a7a92','#6a5e76'], midhill:'#46405a', gbeam:'#6a563c', gpillar:'#5e4c34', dayhl:0, stars:0.28, hill:0, dubai:0, baylight:'#5a5266', crown:'#5a5868', spire:'#3a2a1e', dbody:'#5a7e92', droof:'#cabfc0', fbody:'#243a2c', cbody:'#dcd4cc', sutro:'#8a7a92' }
     };
     const TL = [[0,'day'],[10,'day'],[16,'golden'],[23,'bluehour'],[34,'night'],[66,'night'],[78,'dawn'],[90,'day'],[100,'day']];
 
@@ -1019,7 +1021,7 @@
     T.push({ sel: '.grass-top', prop: 'stop-color', key: 'grass', idx: 0 }, { sel: '.grass-bot', prop: 'stop-color', key: 'grass', idx: 1 });
     T.push({ sel: '.sand-top', prop: 'stop-color', key: 'sand', idx: 0 }, { sel: '.sand-bot', prop: 'stop-color', key: 'sand', idx: 1 });
     T.push({ sel: '.bg-hills-top', prop: 'stop-color', key: 'bgh', idx: 0 }, { sel: '.bg-hills-bot', prop: 'stop-color', key: 'bgh', idx: 1 });
-    [['.mid-range-hills', 'fill', 'midhill'], ['.guideway-beam', 'fill', 'gbeam'], ['.guideway-pillars', 'fill', 'gpillar'],
+    [['.mid-range-hills', 'fill', 'midhill'], ['.sutro', 'stroke', 'sutro'], ['.sutro', 'fill', 'sutro'], ['.guideway-beam', 'fill', 'gbeam'], ['.guideway-pillars', 'fill', 'gpillar'],
      ['.day-highlight', 'opacity', 'dayhl'], ['.night-stars', 'opacity', 'stars'], ['.hill-lights', 'opacity', 'hill'], ['.dubai-lights', 'opacity', 'dubai'],
      ['.bay-light', 'stroke', 'baylight'], ['.sf-crown-tip', 'fill', 'crown'], ['.burj-spire', 'fill', 'spire'],
      ['.dubai-body', 'fill', 'dbody'], ['.dubai-roof', 'fill', 'droof'], ['.fbus-body', 'fill', 'fbody'], ['.caltrain-body', 'fill', 'cbody']
