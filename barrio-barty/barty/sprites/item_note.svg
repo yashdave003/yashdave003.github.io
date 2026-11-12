@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Community Note: pick your arena opponent instead of the draw">
+  <!-- A yellow sticky note (the community-board kind) with two written lines
+       and a red crosshair: you name who you duel at the arena. -->
+  <path d="M18 16 H102 V82 L80 104 H18 Z" fill="#f6d55c" stroke="#2b2015" stroke-width="6" stroke-linejoin="round"/>
+  <path d="M80 104 V82 H102" fill="#e2b33c" stroke="#2b2015" stroke-width="5" stroke-linejoin="round"/>
+  <line x1="30" y1="34" x2="66" y2="34" stroke="#2b2015" stroke-width="5" stroke-linecap="round"/>
+  <line x1="30" y1="50" x2="56" y2="50" stroke="#2b2015" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="56" cy="76" r="15" fill="#fffaf0" stroke="#c23b2a" stroke-width="5"/>
+  <circle cx="56" cy="76" r="4.5" fill="#c23b2a"/>
+  <line x1="56" y1="55" x2="56" y2="64" stroke="#c23b2a" stroke-width="4" stroke-linecap="round"/>
+  <line x1="35" y1="76" x2="44" y2="76" stroke="#c23b2a" stroke-width="4" stroke-linecap="round"/>
+  <line x1="68" y1="76" x2="77" y2="76" stroke="#c23b2a" stroke-width="4" stroke-linecap="round"/>
+</svg>
