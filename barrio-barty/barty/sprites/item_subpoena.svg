@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Subpoena: hire the Landlord from anywhere for one job">
+  <!-- A parchment summons with a folded corner, a signature, and a brick-red
+       wax seal stamped with the Landlord's top hat (landlord.svg's hat and
+       amber band): the paper that makes him work for you from anywhere. -->
+  <path d="M22 10 H80 L98 28 V110 H22 Z" fill="#f4ead8" stroke="#2b2015" stroke-width="6" stroke-linejoin="round"/>
+  <path d="M80 10 V28 H98" fill="#e2d3b4" stroke="#2b2015" stroke-width="5" stroke-linejoin="round"/>
+  <g stroke="#2b2015" stroke-width="5" stroke-linecap="round">
+    <line x1="34" y1="32" x2="66" y2="32"/>
+    <line x1="34" y1="48" x2="84" y2="48"/>
+    <line x1="34" y1="62" x2="72" y2="62"/>
+  </g>
+  <path d="M32 94 Q37 82 41 93 T51 92" fill="none" stroke="#2b2015" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="76" cy="88" r="20" fill="#b23a2e" stroke="#2b2015" stroke-width="5"/>
+  <rect x="68" y="74" width="16" height="15" fill="#2b2015"/>
+  <rect x="68" y="83" width="16" height="4" fill="#EF9F27"/>
+  <rect x="63" y="88" width="26" height="5" rx="2.5" fill="#2b2015"/>
+</svg>

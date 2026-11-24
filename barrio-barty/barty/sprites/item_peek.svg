@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Bonus star peek: see which bonus star the final-stretch call turns over">
+  <!-- An open eye whose iris is the bonus star (star.svg's chunky yellow star
+       and ink ring, scaled down): a private look at a hidden bonus star.
+       Nudged down 5 so the eye and its lashes sit centred. -->
+  <g transform="translate(0 5)">
+    <path d="M8 60 Q60 6 112 60 Q60 114 8 60 Z" fill="#f4ead8" stroke="#2b2015" stroke-width="6" stroke-linejoin="round"/>
+    <g transform="translate(60 61) scale(0.5) translate(-60 -57)">
+      <path d="M 60 16 L 72.3 45 L 103.7 47.8 L 80 68.5 L 87 99.2 L 60 83 L 33 99.2 L 40 68.5 L 16.3 47.8 L 47.7 45 Z"
+            fill="#2b2015" stroke="#2b2015" stroke-width="18" stroke-linejoin="round"/>
+      <path d="M 60 16 L 72.3 45 L 103.7 47.8 L 80 68.5 L 87 99.2 L 60 83 L 33 99.2 L 40 68.5 L 16.3 47.8 L 47.7 45 Z"
+            fill="#FFD21F" stroke="#FFD21F" stroke-width="9" stroke-linejoin="round"/>
+    </g>
+    <g stroke="#2b2015" stroke-width="5" stroke-linecap="round">
+      <line x1="60" y1="30" x2="60" y2="17"/>
+      <line x1="36" y1="36" x2="29" y2="25"/>
+      <line x1="84" y1="36" x2="91" y2="25"/>
+    </g>
+  </g>
+</svg>
