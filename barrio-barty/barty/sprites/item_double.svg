@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Double star: take two stars on one landing">
+  <!-- PROPOSED ART (mockup 2026-11-27). Two of the game's stars (star.svg's
+       shape, ink ring and yellow), one behind the other. -->
+  <g transform="translate(34 -2) scale(0.66)">
+    <path d="M 60 16 L 72.3 45 L 103.7 47.8 L 80 68.5 L 87 99.2 L 60 83 L 33 99.2 L 40 68.5 L 16.3 47.8 L 47.7 45 Z" fill="#2b2015" stroke="#2b2015" stroke-width="20" stroke-linejoin="round"/>
+    <path d="M 60 16 L 72.3 45 L 103.7 47.8 L 80 68.5 L 87 99.2 L 60 83 L 33 99.2 L 40 68.5 L 16.3 47.8 L 47.7 45 Z" fill="#F2B21A" stroke="#F2B21A" stroke-width="9" stroke-linejoin="round"/>
+  </g>
+  <g transform="translate(2 28) scale(0.8)">
+    <path d="M 60 16 L 72.3 45 L 103.7 47.8 L 80 68.5 L 87 99.2 L 60 83 L 33 99.2 L 40 68.5 L 16.3 47.8 L 47.7 45 Z" fill="#2b2015" stroke="#2b2015" stroke-width="18" stroke-linejoin="round"/>
+    <path d="M 60 16 L 72.3 45 L 103.7 47.8 L 80 68.5 L 87 99.2 L 60 83 L 33 99.2 L 40 68.5 L 16.3 47.8 L 47.7 45 Z" fill="#FFD21F" stroke="#FFD21F" stroke-width="9" stroke-linejoin="round"/>
+    <circle cx="51" cy="56" r="4.2" fill="#2b2015"/>
+    <circle cx="69" cy="56" r="4.2" fill="#2b2015"/>
+  </g>
+</svg>
